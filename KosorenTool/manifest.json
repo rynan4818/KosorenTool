@@ -1,0 +1,15 @@
+﻿{
+  "$schema": "https://raw.githubusercontent.com/bsmg/BSIPA-MetadataFileSchema/master/Schema.json",
+  "id": "KosorenTool",
+  "name": "KosorenTool",
+  "author": "",
+  "version": "0.0.1",
+  "description": "",
+  "gameVersion": "1.20.0",
+  "dependsOn": {
+    "BSIPA": "^4.2.2",
+    "SiraUtil": "^3.0.5",
+    "BeatSaberMarkupLanguage": "^1.6.3",
+    "BS Utils": "^1.12.0"
+  }
+}
