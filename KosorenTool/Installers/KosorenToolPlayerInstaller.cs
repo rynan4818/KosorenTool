@@ -1,4 +1,5 @@
-﻿using KosorenTool.Models;
+﻿using KosorenTool.Configuration;
+using KosorenTool.Models;
 using Zenject;
 
 namespace KosorenTool.Installers
@@ -7,7 +8,8 @@ namespace KosorenTool.Installers
     {
         public override void InstallBindings()
         {
-            this.Container.BindInterfacesAndSelfTo<KosorenToolController>().FromNewComponentOnNewGameObject().AsCached().NonLazy();
+            if (PluginConfig.Instance.DisableSubmission)
+                this.Container.BindInterfacesAndSelfTo<KosorenToolController>().FromNewComponentOnNewGameObject().AsCached().NonLazy();
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.IO;
+using System.Runtime.CompilerServices;
 using IPA.Config.Stores;
 
 [assembly: InternalsVisibleTo(GeneratedStore.AssemblyVisibilityTarget)]
@@ -7,7 +8,9 @@ namespace KosorenTool.Configuration
     internal class PluginConfig
     {
         public static PluginConfig Instance { get; set; }
-        public virtual bool DisableSubmission { get; set; } = false; // BSIPAが値の変更を検出し、自動的に設定を保存したい場合は、'virtual'でなければなりません
+        public static readonly string DefaultDBFilePath = Path.Combine(IPA.Utilities.UnityGame.UserDataPath, "DataRecorder", "beatsaber.db");
+        public virtual bool DisableSubmission { get; set; } = false;
+        public virtual string DBFilePath { get; set; } = DefaultDBFilePath;
 
         /// <summary>
         /// これは、BSIPAが設定ファイルを読み込むたびに（ファイルの変更が検出されたときを含めて）呼び出されます

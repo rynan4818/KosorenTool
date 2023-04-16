@@ -119,7 +119,10 @@
     <Compile Include="Installers\KosorenToolAppInstaller.cs" />
     <Compile Include="Installers\KosorenToolMenuInstaller.cs" />
     <Compile Include="Installers\KosorenToolPlayerInstaller.cs" />
+    <Compile Include="Interfaces\IBeatmapInfoUpdater.cs" />
+    <Compile Include="Models\DataRecorderRead.cs" />
     <Compile Include="Models\KosorenToolController.cs" />
+    <Compile Include="Models\KosorenToolUIManager.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="Configuration\PluginConfig.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -142,5 +145,6 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

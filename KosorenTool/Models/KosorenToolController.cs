@@ -8,11 +8,7 @@ namespace KosorenTool.Models
     {
         private void Awake()
         {
-            if (PluginConfig.Instance.DisableSubmission)
-            {
                 ScoreSubmission.DisableSubmission(Plugin.Name);
-            }
         }
-
     }
 }
