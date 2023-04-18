@@ -8,9 +8,14 @@ namespace KosorenTool.Configuration
     internal class PluginConfig
     {
         public static PluginConfig Instance { get; set; }
-        public static readonly string DefaultDBFilePath = Path.Combine(IPA.Utilities.UnityGame.UserDataPath, "DataRecorder", "beatsaber.db");
+        public static readonly string DefaultPlayDataFile = Path.Combine(IPA.Utilities.UnityGame.UserDataPath, "KosorenPlayData.json");
+
+        public virtual string PlayDataFile { get; set; } = DefaultPlayDataFile;
         public virtual bool DisableSubmission { get; set; } = false;
-        public virtual string DBFilePath { get; set; } = DefaultDBFilePath;
+        public virtual bool BeatSaviorTargeted { get; set; } = true;
+        public virtual bool ShowFailed { get; set; } = true;
+        public virtual bool SortByDate { get; set; } = true;
+        public virtual bool AllTimeSave { get; set; } = true;
 
         /// <summary>
         /// これは、BSIPAが設定ファイルを読み込むたびに（ファイルの変更が検出されたときを含めて）呼び出されます

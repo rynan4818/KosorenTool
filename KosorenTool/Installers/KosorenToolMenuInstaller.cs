@@ -10,7 +10,6 @@ namespace KosorenTool.Installers
         {
             this.Container.BindInterfacesAndSelfTo<SettingTabViewController>().FromNewComponentAsViewController().AsSingle().NonLazy();
             this.Container.BindInterfacesAndSelfTo<KosorenToolUIManager>().AsSingle().NonLazy();
-            //this.Container.BindInterfacesAndSelfTo<ConfigViewController>().FromNewComponentAsViewController().AsSingle().NonLazy();
         }
     }
 }

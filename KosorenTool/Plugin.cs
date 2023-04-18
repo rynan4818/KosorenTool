@@ -22,8 +22,6 @@ namespace KosorenTool
         internal static IPALogger Log { get; private set; }
         internal static string Name => "KosorenTool";
 
-        internal static readonly BS_Utils.Utilities.Config BeatSaviorDataConfig = new BS_Utils.Utilities.Config("BeatSaviorData");
-
         [Init]
         /// <summary>
         /// IPAによってプラグインが最初にロードされたときに呼び出される（ゲームが開始されたとき、またはプラグインが無効な状態で開始された場合は有効化されたときのいずれか）
@@ -41,11 +39,8 @@ namespace KosorenTool
             Log.Debug("Config loaded");
 
             //使用するZenjectのインストーラーのコメントを外します
-            //zenjector.Install<KosorenToolAppInstaller>(Location.App);
+            zenjector.Install<KosorenToolAppInstaller>(Location.App);
             zenjector.Install<KosorenToolMenuInstaller>(Location.Menu);
-            zenjector.Install<KosorenToolPlayerInstaller>(Location.Player);
-
-            BeatSaviorDataConfig.SetBool("BeatSaviorData", "DisableBeatSaviorUpload", PluginConfig.Instance.DisableSubmission);
         }
 
         [OnStart]

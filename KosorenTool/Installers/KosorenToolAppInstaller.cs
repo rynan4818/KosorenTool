@@ -1,5 +1,4 @@
-﻿/*
-//using KosorenTool.Models;
+﻿using KosorenTool.Models;
 using Zenject;
 
 namespace KosorenTool.Installers
@@ -8,8 +7,8 @@ namespace KosorenTool.Installers
     {
         public override void InstallBindings()
         {
-            //this.Container.BindInterfacesAndSelfTo<KosorenToolController>().AsSingle().NonLazy();
+            this.Container.BindInterfacesAndSelfTo<KosorenToolController>().AsSingle().NonLazy();
+            this.Container.BindInterfacesAndSelfTo<KosorenToolPlayData>().AsSingle().NonLazy();
         }
     }
 }
-*/

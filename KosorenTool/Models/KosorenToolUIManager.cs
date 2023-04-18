@@ -1,7 +1,9 @@
-﻿using KosorenTool.Interfaces;
+﻿using HMUI;
+using KosorenTool.Interfaces;
 using System;
 using System.Collections.Generic;
 using Zenject;
+using IPA.Utilities;
 
 namespace KosorenTool.Models
 {
@@ -16,6 +18,7 @@ namespace KosorenTool.Models
             _standardLevelDetail = standardLevelDetailViewController;
             _beatmapInfoUpdaters = iBeatmapInfoUpdaters;
         }
+
         public void StandardLevelDetail_didChangeDifficultyBeatmapEvent(StandardLevelDetailViewController arg1, IDifficultyBeatmap arg2)
         {
             if (arg1 != null && arg2 != null)

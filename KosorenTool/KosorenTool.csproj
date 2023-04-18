@@ -42,6 +42,11 @@
     <DisableZipRelease>True</DisableZipRelease>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="BeatmapCore">
+      <HintPath>$(BeatSaberDir)\Beat Saber_Data\Managed\BeatmapCore.dll</HintPath>
+      <Private>False</Private>
+      <SpecificVersion>False</SpecificVersion>
+    </Reference>
     <Reference Include="BSML">
       <HintPath>$(BeatSaberDir)\Plugins\BSML.dll</HintPath>
       <Private>False</Private>
@@ -49,6 +54,16 @@
     </Reference>
     <Reference Include="BS_Utils">
       <HintPath>$(BeatSaberDir)\Plugins\BS_Utils.dll</HintPath>
+      <Private>False</Private>
+      <SpecificVersion>False</SpecificVersion>
+    </Reference>
+    <Reference Include="GameplayCore">
+      <HintPath>$(BeatSaberDir)\Beat Saber_Data\Managed\GameplayCore.dll</HintPath>
+      <Private>False</Private>
+      <SpecificVersion>False</SpecificVersion>
+    </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>$(BeatSaberDir)\Libs\Newtonsoft.Json.dll</HintPath>
       <Private>False</Private>
       <SpecificVersion>False</SpecificVersion>
     </Reference>
@@ -118,10 +133,9 @@
   <ItemGroup>
     <Compile Include="Installers\KosorenToolAppInstaller.cs" />
     <Compile Include="Installers\KosorenToolMenuInstaller.cs" />
-    <Compile Include="Installers\KosorenToolPlayerInstaller.cs" />
     <Compile Include="Interfaces\IBeatmapInfoUpdater.cs" />
-    <Compile Include="Models\DataRecorderRead.cs" />
     <Compile Include="Models\KosorenToolController.cs" />
+    <Compile Include="Models\KosorenToolPlayData.cs" />
     <Compile Include="Models\KosorenToolUIManager.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="Configuration\PluginConfig.cs" />
