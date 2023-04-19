@@ -133,9 +133,11 @@
   <ItemGroup>
     <Compile Include="Installers\KosorenToolAppInstaller.cs" />
     <Compile Include="Installers\KosorenToolMenuInstaller.cs" />
+    <Compile Include="Installers\KosorenToolPlayerInstaller.cs" />
     <Compile Include="Interfaces\IBeatmapInfoUpdater.cs" />
     <Compile Include="Models\KosorenToolController.cs" />
     <Compile Include="Models\KosorenToolPlayData.cs" />
+    <Compile Include="Models\KosorenToolPlayerController.cs" />
     <Compile Include="Models\KosorenToolUIManager.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="Configuration\PluginConfig.cs" />

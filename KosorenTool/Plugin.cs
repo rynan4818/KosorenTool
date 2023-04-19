@@ -41,6 +41,7 @@ namespace KosorenTool
             //使用するZenjectのインストーラーのコメントを外します
             zenjector.Install<KosorenToolAppInstaller>(Location.App);
             zenjector.Install<KosorenToolMenuInstaller>(Location.Menu);
+            zenjector.Install<KosorenToolPlayerInstaller>(Location.Player);
         }
 
         [OnStart]

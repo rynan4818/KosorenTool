@@ -12,6 +12,7 @@ namespace KosorenTool.Models
         private bool _disposedValue;
         private KosorenToolPlayData _playdata;
         public ResultsViewController ResultsViewController;
+        public float _jumpDistance;
         public KosorenToolController(KosorenToolPlayData playdata)
         {
             this._playdata = playdata;
@@ -35,7 +36,7 @@ namespace KosorenTool.Models
                 return;
             var result = ((LevelFinishedWithResultsEventArgs)eventArgs).CompletionResults;
             var beatmap = ((StandardLevelScenesTransitionSetupDataSO)scene)?.difficultyBeatmap;
-            this._playdata.SaveRecord(beatmap, result);
+            this._playdata.SaveRecord(beatmap, result, _jumpDistance);
         }
 
         public void Initialize()

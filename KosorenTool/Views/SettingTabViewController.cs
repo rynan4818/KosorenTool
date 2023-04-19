@@ -83,9 +83,9 @@ namespace KosorenTool.Views
                 }
                 var notesRemaining = notesCount - r.LastNote;
                 builder.Append(Space(truncated.Count - truncated.IndexOf(r) - 1));
-                builder.Append($"<size=2.5><color=#1a252bff>{localDateTime:d}</color></size>");
-                builder.Append($"<size=3.5><color=#0f4c75ff> {r.ModifiedScore}</color></size>");
-                builder.Append($"<size=3.5><color=#368cc6ff> {accuracy:0.00}%</color></size>");
+                builder.Append($"<size=2.5><color=#696969ff>{localDateTime:d}</color></size>");
+                builder.Append($"<size=3.5><color=#2f4f4fff> {r.ModifiedScore}</color></size>");
+                builder.Append($"<size=3.5><color=#fffacdff> {accuracy:0.00}%</color></size>");
 
                 if (r.Miss == "FC")
                 {
@@ -99,19 +99,20 @@ namespace KosorenTool.Views
                 if (levelFinished)
                 {
                     // only display acc if the record is a finished level
-                    builder.Append($"<size=3.5><color=#368cc6ff> {accuracy:0.00}%</color></size>");
-
+                    builder.Append($"<size=3.5><color=#fffacdff> {accuracy:0.00}%</color></size>");
                 }
                 if (param.Length > 0)
                 {
-                    builder.Append($"<size=2><color=#1a252bff> {param}</color></size>");
+                    builder.Append($"<size=2><color=#e6b422ff> {param}</color></size>");
                 }
                 if (r.LastNote == -1)
-                    builder.Append($"<size=2.5><color=#1a252bff> cleared</color></size>");
+                    builder.Append($"<size=2.5><color=#00bfffff> cleared</color></size>");
                 else if (r.LastNote == 0) // old record (success, fail, or practice)
                     builder.Append($"<size=2.5><color=#584153ff> unknown</color></size>");
                 else
                     builder.Append($"<size=2.5><color=#ff5722ff> +{notesRemaining} notes</color></size>");
+                var reactionTime = r.JD * 500 / _selectedBeatmap.noteJumpMovementSpeed;
+                builder.Append($"<size=3.5><color=#ffff00ff> {r.JD:0.0}m {reactionTime:0}ms</color></size>");
                 builder.Append(Space(truncated.IndexOf(r)));
                 builder.AppendLine();
             }

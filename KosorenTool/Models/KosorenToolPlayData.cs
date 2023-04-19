@@ -16,6 +16,7 @@ namespace KosorenTool.Models
         public int LastNote = 0;
         public int Param = 0;
         public string Miss = "?";
+        public float JD = 0;
     }
 
     [Flags]
@@ -113,7 +114,7 @@ namespace KosorenTool.Models
             return param;
         }
 
-        public void SaveRecord(IDifficultyBeatmap beatmap, LevelCompletionResults result)
+        public void SaveRecord(IDifficultyBeatmap beatmap, LevelCompletionResults result, float jumpDistance)
         {
             if (beatmap == null || result == null)
                 return;
@@ -127,7 +128,8 @@ namespace KosorenTool.Models
                 RawScore = result.multipliedScore < 0 ? -result.multipliedScore : result.multipliedScore,
                 LastNote = cleared ? -1 : result.goodCutsCount + result.badCutsCount + result.missedCount,
                 Param = (int)ModsToParam(result.gameplayModifiers),
-                Miss = result.fullCombo ? "FC" : (result.missedCount + result.badCutsCount).ToString()
+                Miss = result.fullCombo ? "FC" : (result.missedCount + result.badCutsCount).ToString(),
+                JD = jumpDistance
             };
             var beatmapCharacteristicName = beatmap.parentDifficultyBeatmapSet.beatmapCharacteristic.serializedName;
             var difficulty = $"{beatmap.level.levelID}___{(int)beatmap.difficulty}___{beatmapCharacteristicName}";
