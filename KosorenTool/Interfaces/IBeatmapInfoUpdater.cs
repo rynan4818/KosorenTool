@@ -3,5 +3,6 @@
     public interface IBeatmapInfoUpdater
     {
         void BeatmapInfoUpdated(IDifficultyBeatmap beatmap);
+        void RefreshResult();
     }
 }

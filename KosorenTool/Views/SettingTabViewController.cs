@@ -12,6 +12,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Net.Http;
+using System.Threading.Tasks;
+using UnityEngine;
+using System.Collections;
 
 namespace KosorenTool.Views
 {
@@ -21,11 +25,13 @@ namespace KosorenTool.Views
         public string ResourceName => string.Join(".", GetType().Namespace, GetType().Name);
         public IDifficultyBeatmap _selectedBeatmap;
 
+        public static readonly HttpClient ScoresaberHttpClient = new HttpClient();
         internal static readonly BS_Utils.Utilities.Config BeatSaviorDataConfig = new BS_Utils.Utilities.Config("BeatSaviorData");
         private bool _disposedValue;
         private KosorenToolPlayData _playdata;
         private PlayerDataModel _playerDataModel;
         private string _reslut;
+        private bool _recordClear;
 
         [Inject]
         public void Constractor(PlayerDataModel playerDataModel, KosorenToolPlayData playdata)
@@ -37,34 +43,49 @@ namespace KosorenTool.Views
         public void BeatmapInfoUpdated(IDifficultyBeatmap beatmap)
         {
             _selectedBeatmap = beatmap;
-            if (!ResultRefresh())
+            RefreshResult();
+        }
+
+        public void RefreshResult()
+        {
+            bool CheckSetRecords()
             {
-                this._reslut = "";
+                if (_selectedBeatmap == null)
+                    return false;
+                var playerdata = _playerDataModel.playerData;
+                if (playerdata == null)
+                    return false;
+                var records = _playdata.GetRecords(_selectedBeatmap);
+                if (records?.Count == 0)
+                    return false;
+                _ = SetRecords(records, playerdata);
+                return true;
+            }
+            this._recordClear = false;
+            if (!CheckSetRecords())
+            {
+                this._recordClear = true;
+                this._reslut = "\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n";
                 NotifyPropertyChanged(nameof(Result));
             }
         }
 
-        public bool ResultRefresh()
+        public async Task GetRivalInfo(string songHash, string userID)
         {
-            if (_selectedBeatmap == null)
-                return false;
-            var playerdata = _playerDataModel.playerData;
-            if (playerdata == null)
-                return false;
-            var records = _playdata.GetRecords(_selectedBeatmap);
-            if (records?.Count == 0)
-                return false;
-            SetRecords(records, playerdata);
-            return true;
+            var playerFullInfoURL = $"https://scoresaber.com/api/player/{userID}/full";
         }
 
-        public async void SetRecords(List<Record> records, PlayerData playerdata)
+
+        public async Task SetRecords(List<Record> records, PlayerData playerdata)
         {
-            List<Record> truncated = records.Take(10).ToList();
+            List<Record> truncated = records.Take(20).ToList();
             var beatmapData = await _selectedBeatmap.GetBeatmapDataAsync(_selectedBeatmap.GetEnvironmentInfo(), playerdata.playerSpecificSettings);
+            if (this._recordClear)
+                return;
             var notesCount = beatmapData.cuttableNotesCount;
             var maxScore = ScoreModel.ComputeMaxMultipliedScoreForBeatmap(beatmapData);
-            var builder = new StringBuilder(200);
+            var builder = new StringBuilder(1000);
+            var enterSum = 0;
 
             string Space(int len)
             {
@@ -115,9 +136,16 @@ namespace KosorenTool.Views
                 builder.Append($"<size=3.5><color=#ffff00ff> {r.JD:0.0}m {reactionTime:0}ms</color></size>");
                 builder.Append(Space(truncated.IndexOf(r)));
                 builder.AppendLine();
+                enterSum++;
             }
-            this._reslut = builder.ToString();
-            Plugin.Log.Debug(_reslut);
+            if (truncated.Count <= 20)
+            {
+                for (int i = truncated.Count; i <= 20; i++)
+                {
+                    enterSum++;
+                    builder.AppendLine();
+                }
+            }
             NotifyPropertyChanged(nameof(Result));
         }
 
@@ -145,7 +173,7 @@ namespace KosorenTool.Views
         {
             if (PluginConfig.Instance.BeatSaviorTargeted)
                 BeatSaviorDataConfig.SetBool("BeatSaviorData", "DisableBeatSaviorUpload", PluginConfig.Instance.DisableSubmission);
-            GameplaySetup.instance.AddTab(Plugin.Name, this.ResourceName, this, MenuType.Solo);
+            GameplaySetup.instance.AddTab(Plugin.Name, this.ResourceName, this, MenuType.Solo | MenuType.Custom);
         }
         protected virtual void Dispose(bool disposing)
         {

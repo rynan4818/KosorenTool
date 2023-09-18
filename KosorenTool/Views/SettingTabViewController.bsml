@@ -1,6 +1,8 @@
 ﻿<bg xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='https://monkeymanboy.github.io/BSML-Docs/ https://raw.githubusercontent.com/monkeymanboy/BSML-Docs/gh-pages/BSMLSchema.xsd'>
-  <vertical>
-    <checkbox-setting text="DisableSubmission" value="DisableSubmission"  apply-on-change="true"></checkbox-setting>
-    <text text='~result' align='Center' font-size='3'></text>
-  </vertical>
+  <settings-container child-control-width='true' child-expand-width='true'>
+    <checkbox-setting text="DisableSubmission" value="DisableSubmission"  apply-on-change="true" />
+    <horizontal vertical-fit="PreferredSize" size-delta-y='15'>
+      <text text='~result' align='Left' font-size='3' />
+    </horizontal>
+  </settings-container>
 </bg>
