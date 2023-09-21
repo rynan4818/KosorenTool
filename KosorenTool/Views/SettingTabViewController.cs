@@ -1,17 +1,16 @@
-﻿using BeatSaberMarkupLanguage;
-using BeatSaberMarkupLanguage.Attributes;
-using BeatSaberMarkupLanguage.Components;
+﻿using BeatSaberMarkupLanguage.Attributes;
 using BeatSaberMarkupLanguage.GameplaySetup;
 using BeatSaberMarkupLanguage.ViewControllers;
 using KosorenTool.Configuration;
 using KosorenTool.Models;
 using KosorenTool.Interfaces;
 using Zenject;
-using System.ComponentModel;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using System.Linq;
 using System.Text;
+using TMPro;
 
 namespace KosorenTool.Views
 {
@@ -22,10 +21,12 @@ namespace KosorenTool.Views
         public IDifficultyBeatmap _selectedBeatmap;
 
         internal static readonly BS_Utils.Utilities.Config BeatSaviorDataConfig = new BS_Utils.Utilities.Config("BeatSaviorData");
+        public readonly int ViewCount = 22;
         private bool _disposedValue;
         private KosorenToolPlayData _playdata;
         private PlayerDataModel _playerDataModel;
-        private string _reslut;
+        [UIComponent("Result")]
+        public readonly TextMeshProUGUI _result;
 
         [Inject]
         public void Constractor(PlayerDataModel playerDataModel, KosorenToolPlayData playdata)
@@ -36,12 +37,13 @@ namespace KosorenTool.Views
 
         public void BeatmapInfoUpdated(IDifficultyBeatmap beatmap)
         {
-            _selectedBeatmap = beatmap;
-            if (!ResultRefresh())
-            {
-                this._reslut = "";
-                NotifyPropertyChanged(nameof(Result));
-            }
+            if (beatmap != null)
+                this._selectedBeatmap = beatmap;
+            var builder = new StringBuilder(200);
+            for (int i = 0; i <= ViewCount; i++)
+                builder.AppendLine();
+            this._result.text = builder.ToString();
+            ResultRefresh();
         }
 
         public bool ResultRefresh()
@@ -54,13 +56,13 @@ namespace KosorenTool.Views
             var records = _playdata.GetRecords(_selectedBeatmap);
             if (records?.Count == 0)
                 return false;
-            SetRecords(records, playerdata);
+            _= SetRecords(records, playerdata);
             return true;
         }
 
-        public async void SetRecords(List<Record> records, PlayerData playerdata)
+        public async Task SetRecords(List<Record> records, PlayerData playerdata)
         {
-            List<Record> truncated = records.Take(10).ToList();
+            List<Record> truncated = records.Take(ViewCount).ToList();
             var beatmapData = await _selectedBeatmap.GetBeatmapDataAsync(_selectedBeatmap.GetEnvironmentInfo(), playerdata.playerSpecificSettings);
             var notesCount = beatmapData.cuttableNotesCount;
             var maxScore = ScoreModel.ComputeMaxMultipliedScoreForBeatmap(beatmapData);
@@ -116,9 +118,12 @@ namespace KosorenTool.Views
                 builder.Append(Space(truncated.IndexOf(r)));
                 builder.AppendLine();
             }
-            this._reslut = builder.ToString();
-            Plugin.Log.Debug(_reslut);
-            NotifyPropertyChanged(nameof(Result));
+            if (truncated.Count < ViewCount)
+            {
+                for (int i = truncated.Count; i <= ViewCount; i++)
+                    builder.AppendLine();
+            }
+            this._result.text = builder.ToString();
         }
 
         [UIValue("DisableSubmission")]
@@ -133,8 +138,16 @@ namespace KosorenTool.Views
             }
         }
 
-        [UIValue("result")]
-        public string Result => this._reslut;
+        [UIValue("SortByDate")]
+        public bool SortByDate
+        {
+            get => PluginConfig.Instance.SortByDate;
+            set
+            {
+                PluginConfig.Instance.SortByDate = value;
+                this.BeatmapInfoUpdated(null);
+            }
+        }
 
         [UIAction("#post-parse")]
         internal void PostParse()

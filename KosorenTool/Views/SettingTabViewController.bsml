@@ -1,6 +1,7 @@
 ﻿<bg xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='https://monkeymanboy.github.io/BSML-Docs/ https://raw.githubusercontent.com/monkeymanboy/BSML-Docs/gh-pages/BSMLSchema.xsd'>
-  <vertical>
+  <settings-container child-control-width='true' child-expand-width='true'>
     <checkbox-setting text="DisableSubmission" value="DisableSubmission"  apply-on-change="true"></checkbox-setting>
-    <text text='~result' align='Center' font-size='3'></text>
-  </vertical>
+    <checkbox-setting text="SortByDate" value="SortByDate"  apply-on-change="true"></checkbox-setting>
+    <text id='Result' align='Left' font-size='3' size-delta-x='500' size-delta-y='115'></text>
+  </settings-container>
 </bg>
