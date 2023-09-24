@@ -13,22 +13,16 @@ namespace KosorenTool.Models
         private KosorenToolPlayData _playdata;
         public ResultsViewController ResultsViewController;
         public float _jumpDistance;
+        public bool _standardPlayerActive;
+        public bool _kosorenModeActive;
         public KosorenToolController(KosorenToolPlayData playdata)
         {
             this._playdata = playdata;
         }
 
-        private void OnGameSceneLoaded()
-        {
-            var practiceSettings = BS_Utils.Plugin.LevelData.GameplayCoreSceneSetupData?.practiceSettings;
-            _isPractice = practiceSettings != null;
-            if (PluginConfig.Instance.DisableSubmission)
-                ScoreSubmission.DisableSubmission(Plugin.Name);
-        }
-
         private void OnLevelFinished(object scene, LevelFinishedEventArgs eventArgs)
         {
-            if (eventArgs.LevelType != LevelType.SoloParty)
+            if (eventArgs.LevelType == LevelType.Campaign || eventArgs.LevelType == LevelType.Tutorial)
                 return;
             if (_isPractice || Gamemode.IsPartyActive)
                 return;
@@ -36,12 +30,11 @@ namespace KosorenTool.Models
                 return;
             var result = ((LevelFinishedWithResultsEventArgs)eventArgs).CompletionResults;
             var beatmap = ((StandardLevelScenesTransitionSetupDataSO)scene)?.difficultyBeatmap;
-            this._playdata.SaveRecord(beatmap, result, _jumpDistance);
+            _ = this._playdata.SaveRecordAsync(beatmap, result, this._jumpDistance, this._kosorenModeActive);
         }
 
         public void Initialize()
         {
-            BSEvents.gameSceneLoaded += OnGameSceneLoaded;
             BSEvents.LevelFinished += OnLevelFinished;
         }
         protected virtual void Dispose(bool disposing)
@@ -50,9 +43,7 @@ namespace KosorenTool.Models
             {
                 if (disposing)
                 {
-                    BSEvents.gameSceneLoaded -= OnGameSceneLoaded;
                     BSEvents.LevelFinished -= OnLevelFinished;
-                    this._playdata.BackupPlaydata();
                 }
                 this._disposedValue = true;
             }

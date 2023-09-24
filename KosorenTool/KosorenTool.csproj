@@ -42,6 +42,11 @@
     <DisableZipRelease>True</DisableZipRelease>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="0Harmony">
+      <HintPath>$(BeatSaberDir)\Libs\0Harmony.dll</HintPath>
+      <Private>False</Private>
+      <SpecificVersion>False</SpecificVersion>
+    </Reference>
     <Reference Include="BeatmapCore">
       <HintPath>$(BeatSaberDir)\Beat Saber_Data\Managed\BeatmapCore.dll</HintPath>
       <Private>False</Private>
@@ -131,13 +136,15 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="HarmonyPatches\ScoreMonitorPatch.cs" />
     <Compile Include="Installers\KosorenToolAppInstaller.cs" />
     <Compile Include="Installers\KosorenToolMenuInstaller.cs" />
     <Compile Include="Installers\KosorenToolPlayerInstaller.cs" />
-    <Compile Include="Interfaces\IBeatmapInfoUpdater.cs" />
+    <Compile Include="Installers\KosorenToolStandardPlayerInstaller.cs" />
     <Compile Include="Models\KosorenToolController.cs" />
     <Compile Include="Models\KosorenToolPlayData.cs" />
     <Compile Include="Models\KosorenToolPlayerController.cs" />
+    <Compile Include="Models\KosorenToolStandardPlayerController.cs" />
     <Compile Include="Models\KosorenToolUIManager.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="Configuration\PluginConfig.cs" />

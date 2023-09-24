@@ -1,10 +1,13 @@
 ﻿using KosorenTool.Configuration;
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.IO;
+using System.Linq;
 using Zenject;
 using Newtonsoft.Json;
-using System.Linq;
+using System.Collections.Concurrent;
+using System.Threading.Tasks;
 
 namespace KosorenTool.Models
 {
@@ -41,23 +44,42 @@ namespace KosorenTool.Models
         SubmissionDisabled = 0x10000,
     }
 
-    public class KosorenToolPlayData : IInitializable
+    public class KosorenToolPlayData : IInitializable, IDisposable
     {
-        public Dictionary<string, IList<Record>> Records { get; set; } = new Dictionary<string, IList<Record>>();
+        private bool _disposedValue;
+        public ConcurrentDictionary<string, IList<Record>> _records { get; set; } = new ConcurrentDictionary<string, IList<Record>>();
+        public static SemaphoreSlim RecordsSemaphore = new SemaphoreSlim(1, 1);
+        public bool _init;
         public void Initialize()
         {
-            InitPlaydata();
+            _= this.InitPlaydataAsync();
+            Plugin.OnPluginExit += BackupPlaydata; //ファイルの書き込み処理はDisposeのときでは間に合わない
         }
-
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!this._disposedValue)
+            {
+                if (disposing)
+                    Plugin.OnPluginExit -= BackupPlaydata;
+                this._disposedValue = true;
+            }
+        }
+        public void Dispose()
+        {
+            // このコードを変更しないでください。クリーンアップ コードを 'Dispose(bool disposing)' メソッドに記述します
+            this.Dispose(disposing: true);
+            GC.SuppressFinalize(this);
+        }
         public List<Record> GetRecords(IDifficultyBeatmap beatmap)
         {
             var config = PluginConfig.Instance;
+            var dateSort = config.Sort == "Sort by Date";
             var beatmapCharacteristicName = beatmap.parentDifficultyBeatmapSet.beatmapCharacteristic.serializedName;
             var difficulty = $"{beatmap.level.levelID}___{(int)beatmap.difficulty}___{beatmapCharacteristicName}";
-            if (Records.TryGetValue(difficulty, out IList<Record> records))
+            if (this._records.TryGetValue(difficulty, out IList<Record> records))
             {
                 var filtered = config.ShowFailed ? records : records.Where(s => s.LastNote <= 0);
-                var ordered = filtered.OrderByDescending(s => config.SortByDate ? s.Date : s.ModifiedScore);
+                var ordered = filtered.OrderByDescending(s => dateSort ? s.Date : s.ModifiedScore);
                 return ordered.ToList();
             }
             return new List<Record>();
@@ -86,13 +108,13 @@ namespace KosorenTool.Models
             if (param.HasFlag(Param.SubmissionDisabled)) mods.Add("KR");
             if (mods.Count > 4)
             {
-                mods = mods.Take(3).ToList(); // Truncate
+                mods = mods.Take(4).ToList(); // Truncate
                 mods.Add("..");
             }
             return string.Join(",", mods);
         }
 
-        public Param ModsToParam(GameplayModifiers mods)
+        public Param ModsToParam(GameplayModifiers mods, bool kosorenModeActive)
         {
             Param param = Param.None;
             param |= mods.energyType == GameplayModifiers.EnergyType.Battery ? Param.BatteryEnergy : 0;
@@ -110,12 +132,14 @@ namespace KosorenTool.Models
             param |= mods.ghostNotes ? Param.GhostNotes : 0;
             param |= mods.smallCubes ? Param.SmallCubes : 0;
             param |= mods.proMode ? Param.ProMode : 0;
-            param |= PluginConfig.Instance.DisableSubmission ? Param.SubmissionDisabled : 0;
+            param |= kosorenModeActive ? Param.SubmissionDisabled : 0;
             return param;
         }
 
-        public void SaveRecord(IDifficultyBeatmap beatmap, LevelCompletionResults result, float jumpDistance)
+        public async Task SaveRecordAsync(IDifficultyBeatmap beatmap, LevelCompletionResults result, float jumpDistance, bool kosorenModeActive)
         {
+            if (!this._init)
+                return;
             if (beatmap == null || result == null)
                 return;
             if (result.levelEndStateType == LevelCompletionResults.LevelEndStateType.Incomplete)
@@ -127,56 +151,56 @@ namespace KosorenTool.Models
                 ModifiedScore = result.modifiedScore,
                 RawScore = result.multipliedScore < 0 ? -result.multipliedScore : result.multipliedScore,
                 LastNote = cleared ? -1 : result.goodCutsCount + result.badCutsCount + result.missedCount,
-                Param = (int)ModsToParam(result.gameplayModifiers),
+                Param = (int)ModsToParam(result.gameplayModifiers, kosorenModeActive),
                 Miss = result.fullCombo ? "FC" : (result.missedCount + result.badCutsCount).ToString(),
                 JD = jumpDistance
             };
             var beatmapCharacteristicName = beatmap.parentDifficultyBeatmapSet.beatmapCharacteristic.serializedName;
             var difficulty = $"{beatmap.level.levelID}___{(int)beatmap.difficulty}___{beatmapCharacteristicName}";
-            if (!Records.ContainsKey(difficulty))
-                Records.Add(difficulty, new List<Record>());
-            Records[difficulty].Add(record);
-            SavePlaydata();
+            if (!this._records.ContainsKey(difficulty))
+                this._records.TryAdd(difficulty, new List<Record>());
+            this._records[difficulty].Add(record);
+            await this.SavePlaydataAsync();
             Plugin.Log?.Info($"Saved a new record {difficulty} ({result.modifiedScore}).");
         }
 
-        public void InitPlaydata()
+        public async Task InitPlaydataAsync()
         {
-            if (!File.Exists(PluginConfig.Instance.PlayDataFile))
+            this._init = false;
+            this._records = await this.ReadRecordFileAsync(PluginConfig.Instance.PlayDataFile);
+            if (this._records == null)
+            {
+                Plugin.Log?.Info("Restoring playdata backup");
+                this._records = await this.ReadRecordFileAsync(Path.ChangeExtension(PluginConfig.Instance.PlayDataFile, ".bak"));
+                if (this._records == null)
+                    this._records = new ConcurrentDictionary<string, IList<Record>>();
+                await this.SavePlaydataAsync();
+            }
+            this._init = true;
+        }
+        public async Task SavePlaydataAsync()
+        {
+            if (this._records.Count > 0)
                 return;
-            var json = File.ReadAllText(PluginConfig.Instance.PlayDataFile);
             try
             {
-                Records = JsonConvert.DeserializeObject<Dictionary<string, IList<Record>>>(json);
-                if (Records == null)
-                    throw new JsonReaderException("Empty json playdata");
+                var serialized = JsonConvert.SerializeObject(this._records, Formatting.None);
+                if (!await this.WriteAllTextAsync(PluginConfig.Instance.PlayDataFile, serialized))
+                    throw new Exception("Failed save songdatabase");
             }
-            catch (JsonException ex)
+            catch (Exception ex)
             {
                 Plugin.Log?.Error(ex.ToString());
-                var backup = new FileInfo(Path.ChangeExtension(PluginConfig.Instance.PlayDataFile, ".bak"));
-                if (backup.Exists && backup.Length > 0)
-                {
-                    Plugin.Log?.Info("Restoring playdata backup");
-                    json = File.ReadAllText(backup.FullName);
-                    Records = JsonConvert.DeserializeObject<Dictionary<string, IList<Record>>>(json);
-                    if (Records == null)
-                        throw new Exception("Failed restore playdata");
-                }
-                else
-                    Records = new Dictionary<string, IList<Record>>();
-                SavePlaydata();
             }
         }
         public void SavePlaydata()
         {
+            if (this._records.Count == 0)
+                return;
             try
             {
-                if (Records.Count > 0)
-                {
-                    var serialized = JsonConvert.SerializeObject(Records, Formatting.Indented);
-                    File.WriteAllText(PluginConfig.Instance.PlayDataFile, serialized);
-                }
+                var serialized = JsonConvert.SerializeObject(this._records, Formatting.None);
+                File.WriteAllText(PluginConfig.Instance.PlayDataFile, serialized);
             }
             catch (Exception ex)
             {
@@ -185,8 +209,17 @@ namespace KosorenTool.Models
         }
         public void BackupPlaydata()
         {
+            if (!this._init)
+                return;
             if (!File.Exists(PluginConfig.Instance.PlayDataFile))
                 return;
+            Plugin.Log?.Info("Play data backup");
+            if (!this.CheckPlayDataFile())
+            {
+                this.SavePlaydata();
+                if (!this.CheckPlayDataFile())
+                    return;
+            }
             var backupFile = Path.ChangeExtension(PluginConfig.Instance.PlayDataFile, ".bak");
             try
             {
@@ -206,6 +239,93 @@ namespace KosorenTool.Models
             {
                 Plugin.Log?.Error(ex.ToString());
             }
+        }
+        public bool CheckPlayDataFile()
+        {
+            try
+            {
+                var text = File.ReadAllText(PluginConfig.Instance.PlayDataFile);
+                var result = JsonConvert.DeserializeObject<ConcurrentDictionary<string, IList<Record>>>(text);
+                if (result == null)
+                    return false;
+                else
+                    return true;
+            }
+            catch (Exception e)
+            {
+                Plugin.Log?.Error(e.ToString());
+                return false;
+            }
+        }
+        public async Task<ConcurrentDictionary<string, IList<Record>>> ReadRecordFileAsync(string path)
+        {
+            ConcurrentDictionary<string, IList<Record>> result;
+            var json = await this.ReadAllTextAsync(path);
+            try
+            {
+                if (json == null)
+                    throw new JsonReaderException($"Json file error {path}");
+                result = JsonConvert.DeserializeObject<ConcurrentDictionary<string, IList<Record>>>(json);
+                if (result == null)
+                    throw new JsonReaderException($"Empty json {path}");
+            }
+            catch (JsonException ex)
+            {
+                Plugin.Log?.Error(ex.ToString());
+                result = null;
+            }
+            return result;
+        }
+        public async Task<string> ReadAllTextAsync(string path)
+        {
+            var fileInfo = new FileInfo(path);
+            if (!fileInfo.Exists || fileInfo.Length == 0)
+            {
+                Plugin.Log?.Info($"File not found : {path}");
+                return null;
+            }
+            string result;
+            await RecordsSemaphore.WaitAsync();
+            try
+            {
+                using (var sr = new StreamReader(path))
+                {
+                    result = await sr.ReadToEndAsync();
+                }
+            }
+            catch (Exception e)
+            {
+                Plugin.Log?.Error(e.ToString());
+                result = null;
+            }
+            finally
+            {
+                RecordsSemaphore.Release();
+            }
+            return result;
+        }
+        public async Task<bool> WriteAllTextAsync(string path, string contents)
+        {
+            bool result;
+            await RecordsSemaphore.WaitAsync();
+            try
+            {
+                using (var sw = new StreamWriter(path))
+                {
+                    await sw.WriteAsync(contents);
+                }
+                result = true;
+            }
+            catch (Exception e)
+            {
+                Plugin.Log?.Error(e.ToString());
+                result = false;
+            }
+            finally
+            {
+                RecordsSemaphore.Release();
+            }
+            return result;
         }
     }
 }

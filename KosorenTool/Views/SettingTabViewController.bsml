@@ -1,7 +1,18 @@
 ﻿<bg xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='https://monkeymanboy.github.io/BSML-Docs/ https://raw.githubusercontent.com/monkeymanboy/BSML-Docs/gh-pages/BSMLSchema.xsd'>
-  <settings-container child-control-width='true' child-expand-width='true'>
-    <checkbox-setting text="DisableSubmission" value="DisableSubmission"  apply-on-change="true"></checkbox-setting>
-    <checkbox-setting text="SortByDate" value="SortByDate"  apply-on-change="true"></checkbox-setting>
-    <text id='Result' align='Left' font-size='3' size-delta-x='500' size-delta-y='115'></text>
+  <settings-container>
+    <horizontal min-width='80'>
+      <horizontal pref-width='0'>
+        <checkbox-setting text="KOSOREN" value="DisableSubmission" apply-on-change="true" hover-hint="Do not send to leaderboard. (valid only for Standard Solo Play)"></checkbox-setting>
+      </horizontal>
+      <horizontal pref-width='0'>
+        <dropdown-list-setting text='' value='Sort' choices='SortChoices' apply-on-change="true"></dropdown-list-setting>
+      </horizontal>
+    </horizontal>
+    <horizontal min-width='80' min-height='150'>
+      <text id='Result' align='TopLeft' font-size='3' size-delta-y='150'></text>
+    </horizontal>
+    <checkbox-setting text="Show Failed" value="ShowFailed" apply-on-change="true"  hover-hint="Failed records are also displayed."></checkbox-setting>
+    <checkbox-setting text="All Time Save" value="AllTimeSave" apply-on-change="true"  hover-hint="Always save scores. (If this setting is turned off, save only in KOSOREN mode)"></checkbox-setting>
+    <checkbox-setting text="BeatSavior Targeted" value="BeatSaviorTargeted" apply-on-change="true"  hover-hint="BeatSavior also does not transmit in KOSOREN mode"></checkbox-setting>
   </settings-container>
 </bg>
