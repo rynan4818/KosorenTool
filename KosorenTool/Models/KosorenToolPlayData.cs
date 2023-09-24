@@ -180,7 +180,7 @@ namespace KosorenTool.Models
         }
         public async Task SavePlaydataAsync()
         {
-            if (this._records.Count > 0)
+            if (this._records.Count == 0)
                 return;
             try
             {

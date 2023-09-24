@@ -16,5 +16,9 @@ namespace KosorenTool.Configuration
         public virtual bool ShowFailed { get; set; } = true;
         public virtual string Sort { get; set; } = "Sort by Score";
         public virtual bool AllTimeSave { get; set; } = true;
+        public virtual float InfoXoffset { get; set; } = 0;
+        public virtual float InfoYoffset { get; set; } = 0;
+        public virtual float InfoZoffset { get; set; } = 0;
+        public virtual float ViewFontSize { get; set; } = 20f;
     }
 }

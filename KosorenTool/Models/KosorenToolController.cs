@@ -20,7 +20,7 @@ namespace KosorenTool.Models
             this._playdata = playdata;
         }
 
-        private void OnLevelFinished(object scene, LevelFinishedEventArgs eventArgs)
+        public void OnLevelFinished(object scene, LevelFinishedEventArgs eventArgs)
         {
             if (eventArgs.LevelType == LevelType.Campaign || eventArgs.LevelType == LevelType.Tutorial)
                 return;

@@ -1,4 +1,5 @@
-﻿using KosorenTool.Configuration;
+﻿using BS_Utils.Utilities;
+using KosorenTool.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -41,6 +42,11 @@ namespace KosorenTool.Models
                 BeatmapInfoUpdated(arg1.selectedDifficultyBeatmap);
         }
         private void MainMenu_didDeactivateEvent(bool removedFromHierarchy, bool screenSystemDisabling)
+        {
+            BeatmapInfoUpdated(null);
+        }
+
+        public void OnMenuSceneActive()
         {
             BeatmapInfoUpdated(null);
         }
@@ -135,6 +141,7 @@ namespace KosorenTool.Models
             this._standardLevelDetail.didChangeDifficultyBeatmapEvent += StandardLevelDetail_didChangeDifficultyBeatmapEvent;
             this._standardLevelDetail.didChangeContentEvent += StandardLevelDetail_didChangeContentEvent;
             this._mainMenuView.didDeactivateEvent += MainMenu_didDeactivateEvent;
+            BSEvents.menuSceneActive += OnMenuSceneActive;
         }
         protected virtual void Dispose(bool disposing)
         {
@@ -145,6 +152,7 @@ namespace KosorenTool.Models
                     this._standardLevelDetail.didChangeDifficultyBeatmapEvent -= StandardLevelDetail_didChangeDifficultyBeatmapEvent;
                     this._standardLevelDetail.didChangeContentEvent -= StandardLevelDetail_didChangeContentEvent;
                     this._mainMenuView.didDeactivateEvent -= MainMenu_didDeactivateEvent;
+                    BSEvents.menuSceneActive -= OnMenuSceneActive;
                 }
                 this._disposedValue = true;
             }

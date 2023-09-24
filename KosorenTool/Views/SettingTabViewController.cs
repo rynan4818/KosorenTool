@@ -13,15 +13,17 @@ namespace KosorenTool.Views
     {
         private bool _disposedValue;
         private KosorenToolUIManager _kosorenToolUIManager;
+        private KosorenInfoView _kosorenInfoView;
         public string ResourceName => string.Join(".", GetType().Namespace, GetType().Name);
         [UIComponent("Result")]
         public readonly TextMeshProUGUI _result;
         [UIValue("SortChoices")]
         public List<object> SortChoices { get; set; } = KosorenToolUIManager.SortChoices;
 
-        public SettingTabViewController(KosorenToolUIManager kosorenToolUIManager)
+        public SettingTabViewController(KosorenToolUIManager kosorenToolUIManager, KosorenInfoView kosorenInfoView)
         {
             this._kosorenToolUIManager = kosorenToolUIManager;
+            this._kosorenInfoView = kosorenInfoView;
         }
 
         public void OnResultRefresh(string value)
@@ -39,6 +41,7 @@ namespace KosorenTool.Views
             {
                 PluginConfig.Instance.DisableSubmission = value;
                 this._kosorenToolUIManager.SetBeatSaviorDataSubmission(value);
+                this._kosorenInfoView.KosorenInfoChange(value);
             }
         }
 
