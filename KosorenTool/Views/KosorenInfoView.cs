@@ -2,6 +2,8 @@
 using KosorenTool.Configuration;
 using UnityEngine;
 using UnityEngine.UI;
+using KosorenTool.Util;
+using IPA.Config.Data;
 
 namespace KosorenTool.Views
 {
@@ -14,6 +16,8 @@ namespace KosorenTool.Views
         public GameObject _rootObject;
         public Canvas _canvas;
         public CurvedTextMeshPro _kosorenInfo;
+        public bool _kosoren;
+        public bool _scoreBelowPause;
 
         public static readonly Vector2 CanvasSize = new Vector2(50, 10);
         public static readonly Vector3 Scale = new Vector3(0.01f, 0.01f, 0.01f);
@@ -37,45 +41,42 @@ namespace KosorenTool.Views
             this._rootObject.transform.position = LeftPosition + new Vector3(PluginConfig.Instance.InfoXoffset, PluginConfig.Instance.InfoYoffset, PluginConfig.Instance.InfoZoffset);
             this._rootObject.transform.eulerAngles = LeftRotation;
             this._rootObject.transform.localScale = Scale;
-            this._kosorenInfo = this.CreateText(this._canvas.transform as RectTransform, string.Empty, new Vector2(10, 31));
+            this._kosorenInfo = Utility.CreateText(this._canvas.transform as RectTransform, string.Empty, new Vector2(10, 31));
             rectTransform = this._kosorenInfo.transform as RectTransform;
             rectTransform.SetParent(this._canvas.transform, false);
             rectTransform.anchoredPosition = Vector2.zero;
             this._kosorenInfo.fontSize = PluginConfig.Instance.ViewFontSize;
             this._kosorenInfo.color = Color.red;
             this._kosorenInfo.text = "KOSOREN Enabled!";
-            this._rootObject.SetActive(PluginConfig.Instance.DisableSubmission);
+            this._kosoren = PluginConfig.Instance.DisableSubmission;
+            this._scoreBelowPause = PluginConfig.Instance.ScoreBelowPause;
+            this.InfoCheck();
+        }
+
+        public void InfoCheck()
+        {
+            if (this._kosoren || this._scoreBelowPause)
+                this._rootObject.SetActive(true);
+            else
+                this._rootObject.SetActive(false);
+            if (this._kosoren)
+                this._kosorenInfo.text = "KOSOREN Enabled!";
+            if (this._scoreBelowPause)
+                this._kosorenInfo.text = "Notes Score Below Pause Enabled!";
+            if (this._kosoren && this._scoreBelowPause)
+                this._kosorenInfo.text = "KOSOREN & Notes Score Below Pause Enabled!";
         }
 
         public void KosorenInfoChange(bool value)
         {
-            this._rootObject.SetActive(value);
+            this._kosoren = value;
+            this.InfoCheck();
         }
 
-        public CurvedTextMeshPro CreateText(RectTransform parent, string text, Vector2 anchoredPosition)
+        public void ScoreBelowPause(bool value)
         {
-            return this.CreateText(parent, text, anchoredPosition, new Vector2(0, 0));
-        }
-
-        public CurvedTextMeshPro CreateText(RectTransform parent, string text, Vector2 anchoredPosition, Vector2 sizeDelta)
-        {
-            var gameObj = new GameObject("CustomUIText");
-            gameObj.SetActive(false);
-
-            var textMesh = gameObj.AddComponent<CurvedTextMeshPro>();
-            textMesh.rectTransform.SetParent(parent, false);
-            textMesh.text = text;
-            textMesh.fontSize = 4;
-            textMesh.overrideColorTags = true;
-            textMesh.color = Color.white;
-
-            textMesh.rectTransform.anchorMin = new Vector2(0f, 0f);
-            textMesh.rectTransform.anchorMax = new Vector2(0f, 0f);
-            textMesh.rectTransform.sizeDelta = sizeDelta;
-            textMesh.rectTransform.anchoredPosition = anchoredPosition;
-
-            gameObj.SetActive(true);
-            return textMesh;
+            this._scoreBelowPause = value;
+            this.InfoCheck();
         }
     }
 }

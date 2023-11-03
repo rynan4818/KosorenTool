@@ -12,6 +12,8 @@ namespace KosorenTool.Configuration
 
         public virtual string PlayDataFile { get; set; } = DefaultPlayDataFile;
         public virtual bool DisableSubmission { get; set; } = false;
+        public virtual bool ScoreBelowPause { get; set; } = false;
+        public virtual int SingleNotesScore { get; set; } = 110;
         public virtual bool BeatSaviorTargeted { get; set; } = true;
         public virtual bool ShowFailed { get; set; } = true;
         public virtual string Sort { get; set; } = "Sort by Score";

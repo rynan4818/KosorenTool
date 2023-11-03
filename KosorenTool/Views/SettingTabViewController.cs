@@ -86,6 +86,24 @@ namespace KosorenTool.Views
             }
         }
 
+        [UIValue("ScoreBelowPause")]
+        public bool ScoreBelowPause
+        {
+            get => PluginConfig.Instance.ScoreBelowPause;
+            set
+            {
+                PluginConfig.Instance.ScoreBelowPause = value;
+                this._kosorenInfoView.ScoreBelowPause(value);
+            }
+        }
+
+        [UIValue("SingleNotesScore")]
+        public int SingleNotesScore
+        {
+            get => PluginConfig.Instance.SingleNotesScore;
+            set => PluginConfig.Instance.SingleNotesScore = value;
+        }
+
         public void Initialize()
         {
             GameplaySetup.instance.AddTab(Plugin.Name, this.ResourceName, this, MenuType.Solo | MenuType.Custom | MenuType.Online);

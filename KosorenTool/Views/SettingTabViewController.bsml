@@ -11,6 +11,8 @@
     <horizontal min-width='80' min-height='150'>
       <text id='Result' align='TopLeft' font-size='3' size-delta-y='150'></text>
     </horizontal>
+    <checkbox-setting text="Notes Score Below Pause" value="ScoreBelowPause" apply-on-change="true" hover-hint="Pause if any single note score is below"></checkbox-setting>
+    <increment-setting text="Single Notes Score" value="SingleNotesScore" increment="1" min="1" max="114" integer-only="true" apply-on-change="true"></increment-setting>
     <checkbox-setting text="Show Failed" value="ShowFailed" apply-on-change="true"  hover-hint="Failed records are also displayed."></checkbox-setting>
     <checkbox-setting text="All Time Save" value="AllTimeSave" apply-on-change="true"  hover-hint="Always save scores. (If this setting is turned off, save only in KOSOREN mode)"></checkbox-setting>
     <checkbox-setting text="BeatSavior Targeted" value="BeatSaviorTargeted" apply-on-change="true"  hover-hint="BeatSavior also does not transmit in KOSOREN mode"></checkbox-setting>
