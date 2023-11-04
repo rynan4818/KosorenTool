@@ -104,6 +104,31 @@ namespace KosorenTool.Views
             set => PluginConfig.Instance.SingleNotesScore = value;
         }
 
+        [UIValue("AccuracyBelowPause")]
+        public bool AccuracyBelowPause
+        {
+            get => PluginConfig.Instance.AccuracyBelowPause;
+            set
+            {
+                PluginConfig.Instance.AccuracyBelowPause = value;
+                this._kosorenInfoView.AccuracyBelowPause(value);
+            }
+        }
+
+        [UIValue("MinimumAccuracy")]
+        public float MinimumAccuracy
+        {
+            get => PluginConfig.Instance.MinimumAccuracy;
+            set => PluginConfig.Instance.MinimumAccuracy = value;
+        }
+
+        [UIValue("StartUncheckedTime")]
+        public int StartUncheckedTime
+        {
+            get => PluginConfig.Instance.StartUncheckedTime;
+            set => PluginConfig.Instance.StartUncheckedTime = value;
+        }
+
         public void Initialize()
         {
             GameplaySetup.instance.AddTab(Plugin.Name, this.ResourceName, this, MenuType.Solo | MenuType.Custom | MenuType.Online);

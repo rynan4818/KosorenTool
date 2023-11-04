@@ -13,6 +13,9 @@
     </horizontal>
     <checkbox-setting text="Notes Score Below Pause" value="ScoreBelowPause" apply-on-change="true" hover-hint="Pause if any single note score is below"></checkbox-setting>
     <increment-setting text="Single Notes Score" value="SingleNotesScore" increment="1" min="1" max="114" integer-only="true" apply-on-change="true"></increment-setting>
+    <checkbox-setting text="Accuracy Below Pause" value="AccuracyBelowPause" apply-on-change="true" hover-hint="Pause if any accuracy is below"></checkbox-setting>
+    <increment-setting text="Minimum Accuracy(%)" value="MinimumAccuracy" increment="0.1" min="1" max="99.9" apply-on-change="true"></increment-setting>
+    <increment-setting text="Start Unchecked Time(%)" value="StartUncheckedTime" increment="5" min="0" max="95" integer-only="true" apply-on-change="true"></increment-setting>
     <checkbox-setting text="Show Failed" value="ShowFailed" apply-on-change="true"  hover-hint="Failed records are also displayed."></checkbox-setting>
     <checkbox-setting text="All Time Save" value="AllTimeSave" apply-on-change="true"  hover-hint="Always save scores. (If this setting is turned off, save only in KOSOREN mode)"></checkbox-setting>
     <checkbox-setting text="BeatSavior Targeted" value="BeatSaviorTargeted" apply-on-change="true"  hover-hint="BeatSavior also does not transmit in KOSOREN mode"></checkbox-setting>

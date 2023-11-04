@@ -18,6 +18,7 @@ namespace KosorenTool.Views
         public CurvedTextMeshPro _kosorenInfo;
         public bool _kosoren;
         public bool _scoreBelowPause;
+        public bool _accuracyBelowPause;
 
         public static readonly Vector2 CanvasSize = new Vector2(50, 10);
         public static readonly Vector3 Scale = new Vector3(0.01f, 0.01f, 0.01f);
@@ -50,12 +51,13 @@ namespace KosorenTool.Views
             this._kosorenInfo.text = "KOSOREN Enabled!";
             this._kosoren = PluginConfig.Instance.DisableSubmission;
             this._scoreBelowPause = PluginConfig.Instance.ScoreBelowPause;
+            this._accuracyBelowPause = PluginConfig.Instance.AccuracyBelowPause;
             this.InfoCheck();
         }
 
         public void InfoCheck()
         {
-            if (this._kosoren || this._scoreBelowPause)
+            if (this._kosoren || this._scoreBelowPause || this._accuracyBelowPause)
                 this._rootObject.SetActive(true);
             else
                 this._rootObject.SetActive(false);
@@ -63,8 +65,16 @@ namespace KosorenTool.Views
                 this._kosorenInfo.text = "KOSOREN Enabled!";
             if (this._scoreBelowPause)
                 this._kosorenInfo.text = "Notes Score Below Pause Enabled!";
+            if (this._accuracyBelowPause)
+                this._kosorenInfo.text = "Accuracy Below Pause Enabled!";
             if (this._kosoren && this._scoreBelowPause)
                 this._kosorenInfo.text = "KOSOREN & Notes Score Below Pause Enabled!";
+            if (this._kosoren && this._accuracyBelowPause)
+                this._kosorenInfo.text = "KOSOREN & Accuracy Below Pause Enabled!";
+            if (this._scoreBelowPause && this._accuracyBelowPause)
+                this._kosorenInfo.text = "Notes Score, Accuracy Below Pause Enabled!";
+            if (this._kosoren && this._scoreBelowPause && this._accuracyBelowPause)
+                this._kosorenInfo.text = "KOSOREN & Notes Score, Accuracy Below Pause Enabled!";
         }
 
         public void KosorenInfoChange(bool value)
@@ -76,6 +86,12 @@ namespace KosorenTool.Views
         public void ScoreBelowPause(bool value)
         {
             this._scoreBelowPause = value;
+            this.InfoCheck();
+        }
+
+        public void AccuracyBelowPause(bool value)
+        {
+            this._accuracyBelowPause = value;
             this.InfoCheck();
         }
     }

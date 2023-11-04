@@ -14,6 +14,9 @@ namespace KosorenTool.Configuration
         public virtual bool DisableSubmission { get; set; } = false;
         public virtual bool ScoreBelowPause { get; set; } = false;
         public virtual int SingleNotesScore { get; set; } = 110;
+        public virtual bool AccuracyBelowPause { get; set; } = false;
+        public virtual float MinimumAccuracy { get; set; } = 95;
+        public virtual int StartUncheckedTime { get; set; } = 20;
         public virtual bool BeatSaviorTargeted { get; set; } = true;
         public virtual bool ShowFailed { get; set; } = true;
         public virtual string Sort { get; set; } = "Sort by Score";

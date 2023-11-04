@@ -15,15 +15,17 @@ namespace KosorenTool.Models
     public class KosorenToolPlayerController : IInitializable, IDisposable, ICutScoreBufferDidFinishReceiver
     {
         private BeatmapObjectSpawnController _beatmapObjectSpawnController;
-        private AudioTimeSyncController _audioTimeSyncController;
+        private IAudioTimeSource _audioTimeSource;
         private KosorenToolController _kosorenToolController;
         private ScoreController _scoreController;
         private PauseController _pauseController;
+        private RelativeScoreAndImmediateRankCounter _relativeScoreAndImmediateRankCounter;
         private bool _initializeError;
         private bool disposedValue;
         private readonly CancellationTokenSource connectionClosed = new CancellationTokenSource();
         public GameObject _canvasObject;
         public CurvedTextMeshPro _canvasTextPro;
+        public bool _belowActive;
 
         public static readonly Vector2 CanvasSize = new Vector2(50, 10);
         public static readonly Vector3 Scale = new Vector3(0.01f, 0.01f, 0.01f);
@@ -36,9 +38,10 @@ namespace KosorenTool.Models
             try
             {
                 this._beatmapObjectSpawnController = container.Resolve<BeatmapObjectSpawnController>();
-                this._audioTimeSyncController = container.Resolve<AudioTimeSyncController>();
+                this._audioTimeSource = container.Resolve<IAudioTimeSource>();
                 this._kosorenToolController = container.Resolve<KosorenToolController>();
                 this._scoreController = container.Resolve<ScoreController>();
+                this._relativeScoreAndImmediateRankCounter = container.Resolve<RelativeScoreAndImmediateRankCounter>();
             }
             catch (Exception e)
             {
@@ -54,6 +57,7 @@ namespace KosorenTool.Models
             if (this._initializeError)
                 return;
             this._kosorenToolController._isPractice = true;
+            this._belowActive = false;
             _ = this.SongStartWait();
         }
 
@@ -61,12 +65,12 @@ namespace KosorenTool.Models
         {
             this._kosorenToolController._jumpDistance = 0;
             this._kosorenToolController._kosorenModeActive = false;
-            this._kosorenToolController._scoreBelowPauseModeActive = false;
-            var songTime = this._audioTimeSyncController.songTime;
+            this._kosorenToolController._belowPauseModeActive = false;
+            var songTime = this._audioTimeSource.songTime;
             var token = connectionClosed.Token;
             try
             {
-                while (this._audioTimeSyncController.songTime <= songTime)
+                while (this._audioTimeSource.songTime <= songTime)
                 {
                     token.ThrowIfCancellationRequested();
                     await Task.Delay(500);
@@ -85,9 +89,11 @@ namespace KosorenTool.Models
                 ScoreSubmission.DisableSubmission(Plugin.Name);
                 Plugin.Log.Info("KOSOREN mode enabled");
             }
-            if (this._kosorenToolController._standardPlayerActive && PluginConfig.Instance.ScoreBelowPause && !ScoreMonitorPatch.TournamentAssistantActive)
+            if (this._kosorenToolController._standardPlayerActive && !ScoreMonitorPatch.TournamentAssistantActive && (PluginConfig.Instance.ScoreBelowPause || PluginConfig.Instance.AccuracyBelowPause))
             {
-                this._kosorenToolController._scoreBelowPauseModeActive = true;
+                this._kosorenToolController._belowPauseModeActive = true;
+                if (this._relativeScoreAndImmediateRankCounter != null)
+                    this._relativeScoreAndImmediateRankCounter.relativeScoreOrImmediateRankDidChangeEvent += this.RelativeScoreAndImmediateRankCounter_relativeScoreOrImmediateRankDidChangeEvent;
                 if (this._scoreController != null && this._pauseController != null)
                     this._scoreController.scoringForNoteStartedEvent += this.OnScoringForNoteStarted;
                 if (this._pauseController != null)
@@ -126,9 +132,11 @@ namespace KosorenTool.Models
                 {
                     this.connectionClosed.Cancel();
                     this._kosorenToolController._standardPlayerActive = false;
-                    if (this._kosorenToolController._scoreBelowPauseModeActive)
+                    if (this._kosorenToolController._belowPauseModeActive)
                     {
                         UnityEngine.Object.Destroy(this._canvasObject);
+                        if (this._relativeScoreAndImmediateRankCounter != null)
+                            this._relativeScoreAndImmediateRankCounter.relativeScoreOrImmediateRankDidChangeEvent -= this.RelativeScoreAndImmediateRankCounter_relativeScoreOrImmediateRankDidChangeEvent;
                         if (this._scoreController != null)
                             this._scoreController.scoringForNoteStartedEvent -= this.OnScoringForNoteStarted;
                         if (this._pauseController != null)
@@ -154,7 +162,7 @@ namespace KosorenTool.Models
         /// <param name="scoringElement"></param>
         public void OnScoringForNoteStarted(ScoringElement scoringElement)
         {
-            if (!this._kosorenToolController._scoreBelowPauseModeActive)
+            if (!this._kosorenToolController._belowPauseModeActive)
                 return;
             switch (scoringElement)
             {
@@ -173,12 +181,13 @@ namespace KosorenTool.Models
         /// <param name="csb"></param>
         public void HandleCutScoreBufferDidFinish(CutScoreBuffer csb)
         {
-            if (!this._kosorenToolController._scoreBelowPauseModeActive)
+            if (!this._kosorenToolController._belowPauseModeActive)
                 return;
             csb.UnregisterDidFinishReceiver(this);
             if (this._pauseController != null && PluginConfig.Instance.ScoreBelowPause && (csb.beforeCutScore + csb.afterCutScore + csb.centerDistanceCutScore) <= PluginConfig.Instance.SingleNotesScore)
             {
                 this._canvasTextPro.text = $"{csb.beforeCutScore} + {csb.afterCutScore} + {csb.centerDistanceCutScore} = {csb.beforeCutScore + csb.afterCutScore + csb.centerDistanceCutScore}";
+                this._belowActive = true;
                 this._pauseController.Pause();
             }
         }
@@ -188,6 +197,8 @@ namespace KosorenTool.Models
         /// </summary>
         public void OnGamePause()
         {
+            if (!this._kosorenToolController._belowPauseModeActive)
+                return;
             this._canvasObject.SetActive(true);
         }
 
@@ -196,9 +207,26 @@ namespace KosorenTool.Models
         /// </summary>
         public void OnGameResume()
         {
-            if (!this._kosorenToolController._scoreBelowPauseModeActive)
+            if (!this._kosorenToolController._belowPauseModeActive || !this._belowActive)
                 return;
             this._canvasObject.SetActive(false);
+            this._belowActive = false;
+        }
+        /// <summary>
+        /// 精度更新時
+        /// </summary>
+        private void RelativeScoreAndImmediateRankCounter_relativeScoreOrImmediateRankDidChangeEvent()
+        {
+            if (!this._kosorenToolController._belowPauseModeActive)
+                return;
+            if (this._pauseController != null && PluginConfig.Instance.AccuracyBelowPause &&
+                (this._relativeScoreAndImmediateRankCounter.relativeScore * 100f) < PluginConfig.Instance.MinimumAccuracy &&
+                this._audioTimeSource.songTime > (this._audioTimeSource.songLength * (PluginConfig.Instance.StartUncheckedTime * 0.01f)))
+            {
+                this._canvasTextPro.text = $"Accuracy Below :{this._relativeScoreAndImmediateRankCounter.relativeScore * 100f}% < {PluginConfig.Instance.MinimumAccuracy}%";
+                this._belowActive = true;
+                this._pauseController.Pause();
+            }
         }
     }
 }
