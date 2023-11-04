@@ -29,7 +29,7 @@ Notes Score Below Pauseは、マルチプレイとTournamentAssistantのプレ�
 ![image](https://github.com/rynan4818/KosorenTool/assets/14249877/16c6f34c-4203-4c49-82bb-70e5131395da)
 
 * `KOSOREN` スイッチをオンにすると、スコア送信が無効になります。(ソロプレイ時のみ無効で、他のプレイモードはオンでも無効化されません)
-* `Sort by Score`または`Sort by Date`で並べ替えがスコアが高い順か、日付の新しい順になります。
+* `Sort by Score`または`Sort by Date`で並べ替えがスコアが高い順か、日付の新しい順になります。`Memo`を選択するとメモファイルを表示します（下記参照）
 * スコア表示は左から日付、スコア、ミス数、精度、Modifier (KOSORENモードは`KR`表示)、クリア有無(Fail時は残りノーツ数)、Jump Distance、Reaction Timeです。
 * スコア表示は最大30件表示します。一番下までスクロールすると、追加設定があります。
 
@@ -53,3 +53,15 @@ Notes Score Below Pauseは、マルチプレイとTournamentAssistantのプレ�
 
 * KOSORENモードや、Notes Score Below Pauseが有効のときは、正面上に上記の様に赤字で警告表示されます。
 
+## メモファイルについて
+スコア記録のソートで`Memo`を選択すると`UserData\KosorenToolMemo.txt`ファイルの中身を表示します。
+
+<img src="https://github.com/rynan4818/KosorenTool/assets/14249877/28b444a9-562f-4d37-9713-ce7db678de6c" width="438" height="322">
+
+一度BeatSaberを起動すると`UserData\KosorenToolMemo.txt`が作成されるので、そのファイルに書き込んで下さい。
+
+最大３０行までにして下さい。横幅はフォントが等幅でないので、見ながら調整して下さい。
+
+日本語を使う場合は`UTF-8`の文字コードにして下さい。
+
+<img src="https://github.com/rynan4818/KosorenTool/assets/14249877/950865a8-69f3-481c-a83b-36c340a89ec0" width="488" height="193">
