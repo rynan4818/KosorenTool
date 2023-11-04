@@ -41,6 +41,10 @@ Notes Score Below Pauseは、マルチプレイとTournamentAssistantのプレ�
 * `All Time Save` スイッチをオンにすると、KOSORENモード以外も全て記録します。オフはKOSORENモードのみです。
 * `BeatSavior Targeted` スイッチをオンにすると、BeatSaviorの送信も無効化します。※BeatSaviorの送信管理はScoreSaberやBeatLeaderなどと別なのでこの設定がオンのときにKOSORENモードと連動します。
 
+![image](https://github.com/rynan4818/KosorenTool/assets/14249877/359acbfe-6758-4ec9-8c93-6ad222e7abda)
+
+`Notes Score Below Pause`で一時停止時には、その時のノーツのスコアが表示されます。
+
 ![image](https://github.com/rynan4818/KosorenTool/assets/14249877/06c37deb-b3a2-4bfd-88fd-459a23484c1e)
 
 ![image](https://github.com/rynan4818/KosorenTool/assets/14249877/f1e06956-d910-468b-9edd-e3ee8c9d937c)
