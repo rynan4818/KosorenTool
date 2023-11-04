@@ -15,6 +15,7 @@ namespace KosorenTool.Models
         public float _jumpDistance;
         public bool _standardPlayerActive;
         public bool _kosorenModeActive;
+        public bool _scoreBelowPauseModeActive;
         public KosorenToolController(KosorenToolPlayData playdata)
         {
             this._playdata = playdata;
