@@ -68,6 +68,8 @@ Notes Score Below Pauseは、マルチプレイとTournamentAssistantのプレ�
 
 最大３０行までにして下さい。横幅はフォントが等幅でないので、見ながら調整して下さい。
 
+なお、[TextMeshProで表示しているのでタグが使えます](https://www.google.com/search?q=unity+TextMeshPro+%E3%82%BF%E3%82%B0)
+
 日本語を使う場合は`UTF-8`の文字コードにして下さい。
 
 <img src="https://github.com/rynan4818/KosorenTool/assets/14249877/950865a8-69f3-481c-a83b-36c340a89ec0" width="488" height="193">
