@@ -33,10 +33,16 @@ Notes Score Below Pauseは、マルチプレイとTournamentAssistantのプレ�
 * スコア表示は左から日付、スコア、ミス数、精度、Modifier (KOSORENモードは`KR`表示)、クリア有無(Fail時は残りノーツ数)、Jump Distance、Reaction Timeです。
 * スコア表示は最大30件表示します。一番下までスクロールすると、追加設定があります。
 
-![image](https://github.com/rynan4818/KosorenTool/assets/14249877/449c3b47-62c9-40fc-8538-a2b68b6fe917)
+![image](https://github.com/rynan4818/KosorenTool/assets/14249877/5c1c850e-8e13-4850-9b46-0ffc9991b898)
 
 * `Notes Score Below Pause` スイッチをオンにすると、`Single Notes Score`で設定した点数以下のノーツ点数が出た場合に一時停止します。
 * `Single Notes Score` 一時停止する基準スコアです。この点数以下でポーズします。
+* `Accuracy Below Pause` スイッチをオンにすると、`Minimum Accuracy(%)`未満の精度になるとポーズします。
+* `Minimum Accuracy(%)` 一時停止する基準精度です。この精度未満になるとポーズします。
+* `Start Unchecked Time(%)` 精度チェックをしない曲の冒頭部分の割合(%)です。精度が安定する最初を除外するための設定になります。60秒の曲で10%の場合6秒まで精度をチェックしません。
+
+![image](https://github.com/rynan4818/KosorenTool/assets/14249877/add84cc7-bf59-4d95-88c1-faffbfcefde7)
+
 * `Show Failed` スイッチをオンにすると、Failしたスコアも表示します。
 * `All Time Save` スイッチをオンにすると、KOSORENモード以外も全て記録します。オフはKOSORENモードのみです。
 * `BeatSavior Targeted` スイッチをオンにすると、BeatSaviorの送信も無効化します。※BeatSaviorの送信管理はScoreSaberやBeatLeaderなどと別なのでこの設定がオンのときにKOSORENモードと連動します。
