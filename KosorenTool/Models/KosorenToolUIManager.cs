@@ -2,6 +2,7 @@
 using KosorenTool.Configuration;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -19,8 +20,10 @@ namespace KosorenTool.Models
         public readonly int ViewCount = 30;
         public IDifficultyBeatmap _selectedBeatmap;
         public static readonly BS_Utils.Utilities.Config BeatSaviorDataConfig = new BS_Utils.Utilities.Config("BeatSaviorData");
-        public static readonly List<object> SortChoices = new List<object>() { "Sort by Score" , "Sort by Date" };
+        public static readonly List<object> SortChoices = new List<object>() { "Sort by Score" , "Sort by Date" , "Memo" };
         public event Action<string> OnResultRefresh;
+        public string _memoFilePath;
+        public static readonly string KosorenToolMemo = "KosorenToolMemo.txt";
 
     public KosorenToolUIManager(StandardLevelDetailViewController standardLevelDetailViewController,
             MainMenuViewController mainMenuViewController, PlayerDataModel playerDataModel, KosorenToolPlayData playdata)
@@ -59,6 +62,21 @@ namespace KosorenTool.Models
 
         public void BeatmapInfoUpdated(IDifficultyBeatmap beatmap)
         {
+            if (PluginConfig.Instance.Sort == "Memo")
+            {
+                string memo;
+                try
+                {
+                    memo = File.ReadAllText(this._memoFilePath);
+                }
+                catch (Exception e)
+                {
+                    Plugin.Log?.Error(e.ToString());
+                    memo = "!!Memo File Read Error!!";
+                }
+                this.OnResultRefresh?.Invoke(memo);
+                return;
+            }
             if (this._selectedBeatmap == beatmap)
                 return;
             if (beatmap != null)
@@ -142,6 +160,19 @@ namespace KosorenTool.Models
             this._standardLevelDetail.didChangeContentEvent += StandardLevelDetail_didChangeContentEvent;
             this._mainMenuView.didDeactivateEvent += MainMenu_didDeactivateEvent;
             BSEvents.menuSceneActive += OnMenuSceneActive;
+            this._memoFilePath = Path.Combine(IPA.Utilities.UnityGame.UserDataPath, KosorenToolMemo);
+            if (!File.Exists(this._memoFilePath))
+            {
+                try
+                {
+                    File.WriteAllText(this._memoFilePath, "");
+                }
+                catch (Exception ex)
+                {
+                    Plugin.Log?.Error(ex.ToString());
+                }
+
+            }
         }
         protected virtual void Dispose(bool disposing)
         {

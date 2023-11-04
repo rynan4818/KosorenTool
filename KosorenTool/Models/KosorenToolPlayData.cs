@@ -184,7 +184,7 @@ namespace KosorenTool.Models
                 return;
             try
             {
-                var serialized = JsonConvert.SerializeObject(this._records, Formatting.None);
+                var serialized = await Task.Run(() => JsonConvert.SerializeObject(this._records, Formatting.None)).ConfigureAwait(false);
                 if (!await this.WriteAllTextAsync(PluginConfig.Instance.PlayDataFile, serialized))
                     throw new Exception("Failed save songdatabase");
             }
