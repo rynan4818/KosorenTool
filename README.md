@@ -8,13 +8,13 @@
 
 また、スコア記録と同時にJump DistanceやReaction Timeも記録して表示するため、JDの調整にも役立つと思います。
 
-他にも単ノーツスコア(精度)が一定値以下の場合に一時停止させる機能(Notes Score Below Pause)があります。
+他にも単ノーツスコアや精度が一定値以下の場合に一時停止させる機能(Notes Score,Accuracy Below Pause)があります。
 
 KOSORENモードはSOLO(ソロ)プレイのときのみ有効になります。 マルチプレイやパーティモード、TournamentAssistantのプレイ時にはKOSORENモードの設定は無効になります。
 
-Notes Score Below Pauseは、マルチプレイとTournamentAssistantのプレイ時には無効になります。
+Notes Score,Accuracy Below Pauseは、マルチプレイとTournamentAssistantのプレイ時には無効になります。
 
-※これらのモードではKOSORENモードやNotes Score Below Pauseのスイッチがオンのときに警告表示は消えませんが、実際には無効になります。ただし、念のため無効にするようにしてください。
+※これらのモードではKOSORENモードやNotes Score,Accuracy Below Pauseのスイッチがオンのときに警告表示は消えませんが、実際には無効になります。ただし、念のため無効にするようにしてください。
 
 # インストール方法
 
@@ -67,6 +67,8 @@ Notes Score Below Pauseは、マルチプレイとTournamentAssistantのプレ�
 一度BeatSaberを起動すると`UserData\KosorenToolMemo.txt`が作成されるので、そのファイルに書き込んで下さい。
 
 最大３０行までにして下さい。横幅はフォントが等幅でないので、見ながら調整して下さい。
+
+なお、[TextMeshProで表示しているのでタグが使えます](https://www.google.com/search?q=unity+TextMeshPro+%E3%82%BF%E3%82%B0)
 
 日本語を使う場合は`UTF-8`の文字コードにして下さい。
 
