@@ -6,12 +6,14 @@ using System.Collections.Generic;
 using TMPro;
 using KosorenTool.Configuration;
 using KosorenTool.Models;
+using UnityEngine;
 
 namespace KosorenTool.Views
 {
     public class SettingTabViewController : IInitializable, IDisposable
     {
         private bool _disposedValue;
+        private MainSettingsModelSO _mainSettingsModel;
         private KosorenToolUIManager _kosorenToolUIManager;
         private KosorenInfoView _kosorenInfoView;
         public string ResourceName => string.Join(".", GetType().Namespace, GetType().Name);
@@ -20,8 +22,9 @@ namespace KosorenTool.Views
         [UIValue("SortChoices")]
         public List<object> SortChoices { get; set; } = KosorenToolUIManager.SortChoices;
 
-        public SettingTabViewController(KosorenToolUIManager kosorenToolUIManager, KosorenInfoView kosorenInfoView)
+        public SettingTabViewController(MainSettingsModelSO mainSettingsModel, KosorenToolUIManager kosorenToolUIManager, KosorenInfoView kosorenInfoView)
         {
+            this._mainSettingsModel = mainSettingsModel;
             this._kosorenToolUIManager = kosorenToolUIManager;
             this._kosorenInfoView = kosorenInfoView;
         }
@@ -127,6 +130,13 @@ namespace KosorenTool.Views
         {
             get => PluginConfig.Instance.StartUncheckedTime;
             set => PluginConfig.Instance.StartUncheckedTime = value;
+        }
+
+        [UIValue("ControllerZ")]
+        public float ControllerZ
+        {
+            get => this._mainSettingsModel.controllerPosition.value.z * 100f;
+            set => this._mainSettingsModel.controllerPosition.value = new Vector3(this._mainSettingsModel.controllerPosition.value.x, this._mainSettingsModel.controllerPosition.value.y, Mathf.Clamp(value / 100f, -0.1f, 0.1f));
         }
 
         public void Initialize()
