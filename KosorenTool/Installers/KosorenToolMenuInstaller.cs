@@ -8,9 +8,9 @@ namespace KosorenTool.Installers
     {
         public override void InstallBindings()
         {
-            this.Container.BindInterfacesAndSelfTo<KosorenToolUIManager>().AsSingle().NonLazy();
-            this.Container.BindInterfacesAndSelfTo<KosorenInfoView>().FromNewComponentOnNewGameObject().AsSingle().NonLazy();
-            this.Container.BindInterfacesAndSelfTo<SettingTabViewController>().AsSingle().NonLazy();
+            this.Container.BindInterfacesAndSelfTo<KosorenToolUIManager>().AsSingle();
+            this.Container.BindInterfacesAndSelfTo<KosorenInfoView>().FromNewComponentOnNewGameObject().AsSingle();
+            this.Container.BindInterfacesAndSelfTo<SettingTabViewController>().AsSingle();
         }
     }
 }

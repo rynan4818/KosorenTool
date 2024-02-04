@@ -7,6 +7,7 @@ using TMPro;
 using KosorenTool.Configuration;
 using KosorenTool.Models;
 using UnityEngine;
+using System.Linq;
 
 namespace KosorenTool.Views
 {
@@ -22,9 +23,8 @@ namespace KosorenTool.Views
         [UIValue("SortChoices")]
         public List<object> SortChoices { get; set; } = KosorenToolUIManager.SortChoices;
 
-        public SettingTabViewController(MainSettingsModelSO mainSettingsModel, KosorenToolUIManager kosorenToolUIManager, KosorenInfoView kosorenInfoView)
+        public SettingTabViewController(KosorenToolUIManager kosorenToolUIManager, KosorenInfoView kosorenInfoView)
         {
-            this._mainSettingsModel = mainSettingsModel;
             this._kosorenToolUIManager = kosorenToolUIManager;
             this._kosorenInfoView = kosorenInfoView;
         }
@@ -141,6 +141,7 @@ namespace KosorenTool.Views
 
         public void Initialize()
         {
+            this._mainSettingsModel = Resources.FindObjectsOfTypeAll<MainSettingsModelSO>().First();
             GameplaySetup.instance.AddTab(Plugin.Name, this.ResourceName, this, MenuType.Solo | MenuType.Custom | MenuType.Online);
             this._kosorenToolUIManager.OnResultRefresh += OnResultRefresh;
         }

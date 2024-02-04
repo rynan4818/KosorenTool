@@ -180,8 +180,6 @@ namespace KosorenTool.Models
         }
         public async Task SavePlaydataAsync()
         {
-            if (this._records.Count == 0)
-                return;
             try
             {
                 var serialized = await Task.Run(() => JsonConvert.SerializeObject(this._records, Formatting.None)).ConfigureAwait(false);
@@ -195,8 +193,6 @@ namespace KosorenTool.Models
         }
         public void SavePlaydata()
         {
-            if (this._records.Count == 0)
-                return;
             try
             {
                 var serialized = JsonConvert.SerializeObject(this._records, Formatting.None);
