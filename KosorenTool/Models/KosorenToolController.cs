@@ -30,7 +30,8 @@ namespace KosorenTool.Models
             if (!PluginConfig.Instance.AllTimeSave && !PluginConfig.Instance.DisableSubmission)
                 return;
             var result = ((LevelFinishedWithResultsEventArgs)eventArgs).CompletionResults;
-            var beatmap = ((StandardLevelScenesTransitionSetupDataSO)scene)?.difficultyBeatmap;
+            var setupData = (StandardLevelScenesTransitionSetupDataSO)scene;
+            var beatmap = (setupData.beatmapKey, setupData.beatmapLevel);
             _ = this._playdata.SaveRecordAsync(beatmap, result, this._jumpDistance, this._kosorenModeActive);
         }
 

@@ -70,12 +70,12 @@ namespace KosorenTool.Models
             this.Dispose(disposing: true);
             GC.SuppressFinalize(this);
         }
-        public List<Record> GetRecords(IDifficultyBeatmap beatmap)
+        public List<Record> GetRecords((BeatmapKey, BeatmapLevel) beatmap)
         {
             var config = PluginConfig.Instance;
             var dateSort = config.Sort == "Sort by Date";
-            var beatmapCharacteristicName = beatmap.parentDifficultyBeatmapSet.beatmapCharacteristic.serializedName;
-            var difficulty = $"{beatmap.level.levelID}___{(int)beatmap.difficulty}___{beatmapCharacteristicName}";
+            var beatmapCharacteristicName = beatmap.Item1.beatmapCharacteristic.serializedName;
+            var difficulty = $"{beatmap.Item1.levelId}___{(int)beatmap.Item1.difficulty}___{beatmapCharacteristicName}";
             if (this._records.TryGetValue(difficulty, out IList<Record> records))
             {
                 var filtered = config.ShowFailed ? records : records.Where(s => s.LastNote <= 0);
@@ -136,11 +136,11 @@ namespace KosorenTool.Models
             return param;
         }
 
-        public async Task SaveRecordAsync(IDifficultyBeatmap beatmap, LevelCompletionResults result, float jumpDistance, bool kosorenModeActive)
+        public async Task SaveRecordAsync((BeatmapKey, BeatmapLevel) beatmap, LevelCompletionResults result, float jumpDistance, bool kosorenModeActive)
         {
             if (!this._init)
                 return;
-            if (beatmap == null || result == null)
+            if (beatmap.Item1 == null || result == null)
                 return;
             if (result.levelEndStateType == LevelCompletionResults.LevelEndStateType.Incomplete)
                 return;
@@ -155,8 +155,8 @@ namespace KosorenTool.Models
                 Miss = result.fullCombo ? "FC" : (result.missedCount + result.badCutsCount).ToString(),
                 JD = jumpDistance
             };
-            var beatmapCharacteristicName = beatmap.parentDifficultyBeatmapSet.beatmapCharacteristic.serializedName;
-            var difficulty = $"{beatmap.level.levelID}___{(int)beatmap.difficulty}___{beatmapCharacteristicName}";
+            var beatmapCharacteristicName = beatmap.Item1.beatmapCharacteristic.serializedName;
+            var difficulty = $"{beatmap.Item1.levelId}___{(int)beatmap.Item1.difficulty}___{beatmapCharacteristicName}";
             if (!this._records.ContainsKey(difficulty))
                 this._records.TryAdd(difficulty, new List<Record>());
             this._records[difficulty].Add(record);

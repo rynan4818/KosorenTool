@@ -55,7 +55,7 @@ namespace KosorenTool.Views
             set
             {
                 PluginConfig.Instance.Sort = value;
-                this._kosorenToolUIManager.BeatmapInfoUpdated(null);
+                this._kosorenToolUIManager.BeatmapInfoUpdated(new BeatmapKey(), null);
             }
         }
 
@@ -66,7 +66,7 @@ namespace KosorenTool.Views
             set
             {
                 PluginConfig.Instance.ShowFailed = value;
-                this._kosorenToolUIManager.BeatmapInfoUpdated(null);
+                this._kosorenToolUIManager.BeatmapInfoUpdated(new BeatmapKey(), null);
             }
         }
 
