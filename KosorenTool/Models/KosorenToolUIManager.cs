@@ -88,7 +88,8 @@ namespace KosorenTool.Models
             }
             if (this._selectedBeatmap == (beatmapKey, beatmapLevel))
                 return;
-            this._selectedBeatmap = (beatmapKey, beatmapLevel);
+            if (beatmapLevel != null)
+                this._selectedBeatmap = (beatmapKey, beatmapLevel);
             if (!this.ResultRefresh())
             {
                 this._setRecordsClosed?.Cancel();
