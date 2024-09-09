@@ -22,6 +22,7 @@ namespace KosorenTool.Models
         private BeatmapDataLoader _beatmapDataLoader;
         private PlayerDataModel _playerDataModel;
         private KosorenToolPlayData _playdata;
+        public CancellationTokenSource _setRecordsClosed;
         public readonly int ViewCount = 30;
         public (BeatmapKey, BeatmapLevel) _selectedBeatmap;
         public static readonly BS_Utils.Utilities.Config BeatSaviorDataConfig = new BS_Utils.Utilities.Config("BeatSaviorData");
@@ -30,7 +31,7 @@ namespace KosorenTool.Models
         public string _memoFilePath;
         public static readonly string KosorenToolMemo = "KosorenToolMemo.txt";
 
-    public KosorenToolUIManager(StandardLevelDetailViewController standardLevelDetailViewController, MissionSelectionMapViewController missionSelectionMapViewController,
+        public KosorenToolUIManager(StandardLevelDetailViewController standardLevelDetailViewController, MissionSelectionMapViewController missionSelectionMapViewController,
             MainMenuViewController mainMenuViewController, BeatmapLevelsModel beatmapLevelsModel, BeatmapDataLoader beatmapDataLoader, PlayerDataModel playerDataModel, KosorenToolPlayData playdata)
         {
             this._standardLevelDetail = standardLevelDetailViewController;
@@ -44,25 +45,21 @@ namespace KosorenTool.Models
 
         public void StandardLevelDetail_didChangeDifficultyBeatmapEvent(StandardLevelDetailViewController arg1)
         {
-            Plugin.Log.Info("StandardLevelDetail_didChangeDifficultyBeatmapEvent");
             if (arg1 != null && arg1.beatmapLevel != null)
                 BeatmapInfoUpdated(arg1.beatmapKey, arg1.beatmapLevel);
         }
         public void StandardLevelDetail_didChangeContentEvent(StandardLevelDetailViewController arg1, StandardLevelDetailViewController.ContentType arg2)
         {
-            Plugin.Log.Info("StandardLevelDetail_didChangeContentEvent");
             if (arg1 != null && arg1.beatmapLevel != null)
                 BeatmapInfoUpdated(arg1.beatmapKey, arg1.beatmapLevel);
         }
         private void MainMenu_didDeactivateEvent(bool removedFromHierarchy, bool screenSystemDisabling)
         {
-            Plugin.Log.Info("MainMenu_didDeactivateEvent");
             BeatmapInfoUpdated(new BeatmapKey(), null);
         }
 
         public void OnMenuSceneActive()
         {
-            Plugin.Log.Info("OnMenuSceneActive");
             BeatmapInfoUpdated(new BeatmapKey(), null);
         }
 
@@ -91,10 +88,12 @@ namespace KosorenTool.Models
             }
             if (this._selectedBeatmap == (beatmapKey, beatmapLevel))
                 return;
-            if (beatmapLevel != null)
-                this._selectedBeatmap = (beatmapKey, beatmapLevel);
+            this._selectedBeatmap = (beatmapKey, beatmapLevel);
             if (!this.ResultRefresh())
+            {
+                this._setRecordsClosed?.Cancel();
                 this.OnResultRefresh?.Invoke(string.Empty);
+            }
         }
 
         public bool ResultRefresh()
@@ -109,15 +108,22 @@ namespace KosorenTool.Models
             var records = this._playdata.GetRecords(this._selectedBeatmap);
             if (records?.Count == 0)
                 return false;
-            Plugin.Log.Info($"Record size: {records.Count} : levelId {this._selectedBeatmap.Item1.levelId}");
             _ = this.SetRecords(records, playerdata);
             return true;
         }
 
         public async Task SetRecords(List<Record> records, PlayerData playerdata)
         {
+            this._setRecordsClosed = new CancellationTokenSource();
+            var token = this._setRecordsClosed.Token;
             List<Record> truncated = records.Take(ViewCount).ToList();
             var beatmapData = await this.GetBeatmapDataAsync(this._selectedBeatmap.Item1, this._selectedBeatmap.Item2);
+            if (token.IsCancellationRequested)
+            {
+                this._setRecordsClosed.Dispose();
+                this._setRecordsClosed = null;
+                return;
+            }
             var basicBeatmapData = beatmapData.Item2.GetDifficultyBeatmapData(this._selectedBeatmap.Item1.beatmapCharacteristic, this._selectedBeatmap.Item1.difficulty);
             var notesCount = beatmapData.Item1.cuttableNotesCount;
             var maxScore = ScoreModel.ComputeMaxMultipliedScoreForBeatmap(beatmapData.Item1);
