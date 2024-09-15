@@ -7,14 +7,14 @@ using TMPro;
 using KosorenTool.Configuration;
 using KosorenTool.Models;
 using UnityEngine;
-using BeatSaber.GameSettings;
+using Unity.Mathematics;
 
 namespace KosorenTool.Views
 {
     public class SettingTabViewController : IInitializable, IDisposable
     {
         private bool _disposedValue;
-        private MainSettingsHandler _mainSettingsHandler;
+        private SettingsManager _settingsManager;
         private KosorenToolUIManager _kosorenToolUIManager;
         private KosorenInfoView _kosorenInfoView;
         public string ResourceName => string.Join(".", GetType().Namespace, GetType().Name);
@@ -23,9 +23,9 @@ namespace KosorenTool.Views
         [UIValue("SortChoices")]
         public List<object> SortChoices { get; set; } = KosorenToolUIManager.SortChoices;
 
-        public SettingTabViewController(MainSettingsHandler mainSettingsHandler, KosorenToolUIManager kosorenToolUIManager, KosorenInfoView kosorenInfoView)
+        public SettingTabViewController(SettingsManager settingsManager, KosorenToolUIManager kosorenToolUIManager, KosorenInfoView kosorenInfoView)
         {
-            this._mainSettingsHandler = mainSettingsHandler;
+            this._settingsManager = settingsManager;
             this._kosorenToolUIManager = kosorenToolUIManager;
             this._kosorenInfoView = kosorenInfoView;
         }
@@ -123,8 +123,8 @@ namespace KosorenTool.Views
         [UIValue("ControllerZ")]
         public float ControllerZ
         {
-            get => this._mainSettingsHandler.instance.controllerSettings.positionOffset.z * 100f;
-            set => this._mainSettingsHandler.instance.controllerSettings.positionOffset = new Vector3(this._mainSettingsHandler.instance.controllerSettings.positionOffset.x, this._mainSettingsHandler.instance.controllerSettings.positionOffset.y, Mathf.Clamp(value / 100f, -0.1f, 0.1f));
+            get => this._settingsManager.settings.controller.position.z * 100f;
+            set => this._settingsManager.settings.controller.position = new float3(this._settingsManager.settings.controller.position.x, this._settingsManager.settings.controller.position.y, Mathf.Clamp(value / 100f, -0.1f, 0.1f));
         }
 
         public void Initialize()
