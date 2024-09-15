@@ -50,6 +50,7 @@ namespace KosorenTool.Models
         public ConcurrentDictionary<string, IList<Record>> _records { get; set; } = new ConcurrentDictionary<string, IList<Record>>();
         public static SemaphoreSlim RecordsSemaphore = new SemaphoreSlim(1, 1);
         public bool _init;
+        public event Action<BeatmapKey, BeatmapLevel> OnBeatmapInfoUpdated;
         public void Initialize()
         {
             _= this.InitPlaydataAsync();
@@ -142,7 +143,7 @@ namespace KosorenTool.Models
         {
             if (!this._init)
                 return;
-            if (beatmapKey.IsValid() || result == null)
+            if (!beatmapKey.IsValid() || result == null)
                 return;
             if (result.levelEndStateType == LevelCompletionResults.LevelEndStateType.Incomplete)
                 return;
@@ -161,6 +162,7 @@ namespace KosorenTool.Models
             if (!this._records.ContainsKey(difficulty))
                 this._records.TryAdd(difficulty, new List<Record>());
             this._records[difficulty].Add(record);
+            this.OnBeatmapInfoUpdated?.Invoke(new BeatmapKey(), null);
             await this.SavePlaydataAsync();
             Plugin.Log?.Info($"Saved a new record {difficulty} ({result.modifiedScore}).");
         }
