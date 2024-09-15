@@ -1,10 +1,10 @@
-﻿using BS_Utils.Utilities;
-using KosorenTool.Configuration;
+﻿using KosorenTool.Configuration;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Zenject;
 
@@ -14,9 +14,9 @@ namespace KosorenTool.Models
     {
         private bool _disposedValue;
         private StandardLevelDetailViewController _standardLevelDetail;
-        private MainMenuViewController _mainMenuView;
         private PlayerDataModel _playerDataModel;
         private KosorenToolPlayData _playdata;
+        public Queue<(Task, CancellationTokenSource)> _beatmapInfoUpdateQueue = new Queue<(Task, CancellationTokenSource)>();
         public readonly int ViewCount = 30;
         public IDifficultyBeatmap _selectedBeatmap;
         public static readonly BS_Utils.Utilities.Config BeatSaviorDataConfig = new BS_Utils.Utilities.Config("BeatSaviorData");
@@ -26,10 +26,9 @@ namespace KosorenTool.Models
         public static readonly string KosorenToolMemo = "KosorenToolMemo.txt";
 
     public KosorenToolUIManager(StandardLevelDetailViewController standardLevelDetailViewController,
-            MainMenuViewController mainMenuViewController, PlayerDataModel playerDataModel, KosorenToolPlayData playdata)
+            PlayerDataModel playerDataModel, KosorenToolPlayData playdata)
         {
             this._standardLevelDetail = standardLevelDetailViewController;
-            this._mainMenuView = mainMenuViewController;
             this._playerDataModel = playerDataModel;
             this._playdata = playdata;
         }
@@ -43,15 +42,6 @@ namespace KosorenTool.Models
         {
             if (arg1 != null && arg1.selectedDifficultyBeatmap != null)
                 BeatmapInfoUpdated(arg1.selectedDifficultyBeatmap);
-        }
-        private void MainMenu_didDeactivateEvent(bool removedFromHierarchy, bool screenSystemDisabling)
-        {
-            BeatmapInfoUpdated(null);
-        }
-
-        public void OnMenuSceneActive()
-        {
-            BeatmapInfoUpdated(null);
         }
 
         public void BeatmapInfoUpdated(IDifficultyBeatmap beatmap)
@@ -68,35 +58,71 @@ namespace KosorenTool.Models
                     Plugin.Log?.Error(e.ToString());
                     memo = "!!Memo File Read Error!!";
                 }
-                this.OnResultRefresh?.Invoke(memo);
+                this.ResultRefreshQueueAdd(memo);
                 return;
             }
-            if (this._selectedBeatmap == beatmap)
+            if (this._selectedBeatmap?.level?.levelID == beatmap?.level?.levelID &&
+                this._selectedBeatmap.difficulty == beatmap.difficulty &&
+                this._selectedBeatmap.parentDifficultyBeatmapSet?.beatmapCharacteristic?.serializedName == beatmap.parentDifficultyBeatmapSet?.beatmapCharacteristic?.serializedName)
                 return;
             if (beatmap != null)
                 this._selectedBeatmap = beatmap;
-            if (!ResultRefresh())
-                this.OnResultRefresh?.Invoke(string.Empty);
+            this.ResultRefreshQueueAdd();
+        }
+        public void ResultRefreshQueueAdd(string result = null)
+        {
+            for (int i = 0; i < this._beatmapInfoUpdateQueue.Count; i++)
+            {
+                var (task, cts) = this._beatmapInfoUpdateQueue.Dequeue();
+                cts?.Cancel();
+                if (task != null && task.IsCompleted)
+                {
+                    cts?.Dispose();
+                    task?.Dispose();
+                }
+                else
+                {
+                    this._beatmapInfoUpdateQueue.Enqueue((task, cts));
+                }
+            }
+            if (result != null)
+            {
+                this.OnResultRefresh?.Invoke(result);
+                return;
+            }
+            var cancellation = new CancellationTokenSource();
+            this._beatmapInfoUpdateQueue.Enqueue((this.ResultRefresh(cancellation.Token), cancellation));
+        }
+        public async Task ResultRefresh(CancellationToken cancellationToken)
+        {
+            string result;
+            try
+            {
+                result = await this.GetResult(cancellationToken);
+            }
+            catch (OperationCanceledException)
+            {
+                return;
+            }
+            this.OnResultRefresh?.Invoke(result);
         }
 
-        public bool ResultRefresh()
+        public async Task<string> GetResult(CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             if (this._selectedBeatmap == null)
-                return false;
+                return string.Empty;
             var playerdata = this._playerDataModel.playerData;
             if (playerdata == null)
-                return false;
-            var records = this._playdata.GetRecords(_selectedBeatmap);
+                return string.Empty;
+            var records = this._playdata.GetRecords(this._selectedBeatmap);
             if (records?.Count == 0)
-                return false;
-            _ = SetRecords(records, playerdata);
-            return true;
-        }
-
-        public async Task SetRecords(List<Record> records, PlayerData playerdata)
-        {
-            List<Record> truncated = records.Take(ViewCount).ToList();
+                return string.Empty;
+            List<Record> truncated = records.Take(this.ViewCount).ToList();
             var beatmapData = await _selectedBeatmap.GetBeatmapDataAsync(_selectedBeatmap.GetEnvironmentInfo(), playerdata.playerSpecificSettings);
+            cancellationToken.ThrowIfCancellationRequested();
+            if (beatmapData == null)
+                return string.Empty;
             var notesCount = beatmapData.cuttableNotesCount;
             var maxScore = ScoreModel.ComputeMaxMultipliedScoreForBeatmap(beatmapData);
             var builder = new StringBuilder(200);
@@ -139,19 +165,17 @@ namespace KosorenTool.Models
                     builder.Append($"<size=2.5><color=#584153ff> unknown</color></size>");
                 else
                     builder.Append($"<size=2.5><color=#ff5722ff> +{notesRemaining} notes</color></size>");
-                var reactionTime = r.JD * 500 / _selectedBeatmap.noteJumpMovementSpeed;
+                var reactionTime = r.JD * 500 / this._selectedBeatmap.noteJumpMovementSpeed;
                 builder.Append($"<size=3.5><color=#ffff00ff> {r.JD:0.0}m {reactionTime:0}ms</color></size>");
                 builder.AppendLine();
             }
-            this.OnResultRefresh?.Invoke(builder.ToString());
+            return builder.ToString();
         }
 
         public void Initialize()
         {
             this._standardLevelDetail.didChangeDifficultyBeatmapEvent += StandardLevelDetail_didChangeDifficultyBeatmapEvent;
             this._standardLevelDetail.didChangeContentEvent += StandardLevelDetail_didChangeContentEvent;
-            this._mainMenuView.didDeactivateEvent += MainMenu_didDeactivateEvent;
-            BSEvents.menuSceneActive += OnMenuSceneActive;
             this._memoFilePath = Path.Combine(IPA.Utilities.UnityGame.UserDataPath, KosorenToolMemo);
             if (!File.Exists(this._memoFilePath))
             {
@@ -163,7 +187,6 @@ namespace KosorenTool.Models
                 {
                     Plugin.Log?.Error(ex.ToString());
                 }
-
             }
         }
         protected virtual void Dispose(bool disposing)
@@ -174,8 +197,15 @@ namespace KosorenTool.Models
                 {
                     this._standardLevelDetail.didChangeDifficultyBeatmapEvent -= StandardLevelDetail_didChangeDifficultyBeatmapEvent;
                     this._standardLevelDetail.didChangeContentEvent -= StandardLevelDetail_didChangeContentEvent;
-                    this._mainMenuView.didDeactivateEvent -= MainMenu_didDeactivateEvent;
-                    BSEvents.menuSceneActive -= OnMenuSceneActive;
+                    foreach (var (task, cts) in this._beatmapInfoUpdateQueue)
+                    {
+                        cts?.Cancel();
+                        if (task != null && task.IsCompleted)
+                        {
+                            cts?.Dispose();
+                            task?.Dispose();
+                        }
+                    }
                 }
                 this._disposedValue = true;
             }
