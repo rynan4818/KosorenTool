@@ -18,7 +18,6 @@
     <increment-setting text="Start Unchecked Time(%)" value="StartUncheckedTime" increment="5" min="0" max="95" integer-only="true" apply-on-change="true"></increment-setting>
     <checkbox-setting text="Show Failed" value="ShowFailed" apply-on-change="true"  hover-hint="Failed records are also displayed."></checkbox-setting>
     <checkbox-setting text="All Time Save" value="AllTimeSave" apply-on-change="true"  hover-hint="Always save scores. (If this setting is turned off, save only in KOSOREN mode)"></checkbox-setting>
-    <checkbox-setting text="BeatSavior Targeted" value="BeatSaviorTargeted" apply-on-change="true"  hover-hint="BeatSavior also does not transmit in KOSOREN mode"></checkbox-setting>
     <slider-setting text='Controller Z Position (cm)' value='ControllerZ' min='-10' max='10' increment='0.1' show-buttons='true' apply-on-change='true' hover-hint="Change the Z-position of the controller in the main settings (note the defect in the experimental function)"/>
   </settings-container>
 </bg>

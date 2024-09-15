@@ -1,6 +1,4 @@
-﻿using BS_Utils.Utilities;
-using KosorenTool.Configuration;
-using ModestTree;
+﻿using KosorenTool.Configuration;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -16,13 +14,11 @@ namespace KosorenTool.Models
     {
         private bool _disposedValue;
         private StandardLevelDetailViewController _standardLevelDetail;
-        private MissionSelectionMapViewController _missionSelectionMapViewController;
-        private MainMenuViewController _mainMenuView;
         private BeatmapLevelsModel _beatmapLevelsModel;
         private BeatmapDataLoader _beatmapDataLoader;
         private PlayerDataModel _playerDataModel;
         private KosorenToolPlayData _playdata;
-        public CancellationTokenSource _setRecordsClosed;
+        public Queue<(Task, CancellationTokenSource)> _beatmapInfoUpdateQueue = new Queue<(Task, CancellationTokenSource)>();
         public readonly int ViewCount = 30;
         public (BeatmapKey, BeatmapLevel) _selectedBeatmap;
         public static readonly BS_Utils.Utilities.Config BeatSaviorDataConfig = new BS_Utils.Utilities.Config("BeatSaviorData");
@@ -31,12 +27,10 @@ namespace KosorenTool.Models
         public string _memoFilePath;
         public static readonly string KosorenToolMemo = "KosorenToolMemo.txt";
 
-        public KosorenToolUIManager(StandardLevelDetailViewController standardLevelDetailViewController, MissionSelectionMapViewController missionSelectionMapViewController,
-            MainMenuViewController mainMenuViewController, BeatmapLevelsModel beatmapLevelsModel, BeatmapDataLoader beatmapDataLoader, PlayerDataModel playerDataModel, KosorenToolPlayData playdata)
+        public KosorenToolUIManager(StandardLevelDetailViewController standardLevelDetailViewController, BeatmapLevelsModel beatmapLevelsModel,
+            BeatmapDataLoader beatmapDataLoader, PlayerDataModel playerDataModel, KosorenToolPlayData playdata)
         {
             this._standardLevelDetail = standardLevelDetailViewController;
-            this._missionSelectionMapViewController = missionSelectionMapViewController;
-            this._mainMenuView = mainMenuViewController;
             this._beatmapLevelsModel = beatmapLevelsModel;
             this._beatmapDataLoader = beatmapDataLoader;
             this._playerDataModel = playerDataModel;
@@ -46,27 +40,16 @@ namespace KosorenTool.Models
         public void StandardLevelDetail_didChangeDifficultyBeatmapEvent(StandardLevelDetailViewController arg1)
         {
             if (arg1 != null && arg1.beatmapLevel != null)
+            {
                 BeatmapInfoUpdated(arg1.beatmapKey, arg1.beatmapLevel);
+            }
         }
         public void StandardLevelDetail_didChangeContentEvent(StandardLevelDetailViewController arg1, StandardLevelDetailViewController.ContentType arg2)
         {
             if (arg1 != null && arg1.beatmapLevel != null)
+            {
                 BeatmapInfoUpdated(arg1.beatmapKey, arg1.beatmapLevel);
-        }
-        private void MainMenu_didDeactivateEvent(bool removedFromHierarchy, bool screenSystemDisabling)
-        {
-            BeatmapInfoUpdated(new BeatmapKey(), null);
-        }
-
-        public void OnMenuSceneActive()
-        {
-            BeatmapInfoUpdated(new BeatmapKey(), null);
-        }
-
-        public void SetBeatSaviorDataSubmission(bool value)
-        {
-            if (PluginConfig.Instance.BeatSaviorTargeted)
-                BeatSaviorDataConfig.SetBool("BeatSaviorData", "DisableBeatSaviorUpload", value);
+            }
         }
 
         public void BeatmapInfoUpdated(BeatmapKey beatmapKey, BeatmapLevel beatmapLevel)
@@ -83,51 +66,69 @@ namespace KosorenTool.Models
                     Plugin.Log?.Error(e.ToString());
                     memo = "!!Memo File Read Error!!";
                 }
-                this.OnResultRefresh?.Invoke(memo);
+                this.ResultRefreshQueueAdd(memo);
                 return;
             }
-            if (this._selectedBeatmap == (beatmapKey, beatmapLevel))
+            if (this._selectedBeatmap.Item1 == beatmapKey)
                 return;
-            if (beatmapLevel != null)
+            if (beatmapKey.IsValid())
                 this._selectedBeatmap = (beatmapKey, beatmapLevel);
-            if (!this.ResultRefresh())
+            this.ResultRefreshQueueAdd();
+        }
+        public void ResultRefreshQueueAdd(string result = null)
+        {
+            for (int i= 0; i < this._beatmapInfoUpdateQueue.Count; i++)
             {
-                this._setRecordsClosed?.Cancel();
-                this.OnResultRefresh?.Invoke(string.Empty);
+                var (task, cts) = this._beatmapInfoUpdateQueue.Dequeue();
+                cts?.Cancel();
+                if (task != null && task.IsCompleted)
+                {
+                    cts?.Dispose();
+                    task?.Dispose();
+                }
+                else
+                {
+                    this._beatmapInfoUpdateQueue.Enqueue((task, cts));
+                }
             }
-        }
-
-        public bool ResultRefresh()
-        {
-            if (this._selectedBeatmap.Item2 == null)
-                return false;
-            if (!this._selectedBeatmap.Item1.IsValid())
-                return false;
-            var playerdata = this._playerDataModel.playerData;
-            if (playerdata == null)
-                return false;
-            var records = this._playdata.GetRecords(this._selectedBeatmap);
-            if (records?.Count == 0)
-                return false;
-            _ = this.SetRecords(records, playerdata);
-            return true;
-        }
-
-        public async Task SetRecords(List<Record> records, PlayerData playerdata)
-        {
-            this._setRecordsClosed = new CancellationTokenSource();
-            var token = this._setRecordsClosed.Token;
-            List<Record> truncated = records.Take(ViewCount).ToList();
-            var beatmapData = await this.GetBeatmapDataAsync(this._selectedBeatmap.Item1, this._selectedBeatmap.Item2);
-            if (token.IsCancellationRequested)
+            if (result != null)
             {
-                this._setRecordsClosed.Dispose();
-                this._setRecordsClosed = null;
+                this.OnResultRefresh?.Invoke(result);
                 return;
             }
-            var basicBeatmapData = beatmapData.Item2.GetDifficultyBeatmapData(this._selectedBeatmap.Item1.beatmapCharacteristic, this._selectedBeatmap.Item1.difficulty);
-            var notesCount = beatmapData.Item1.cuttableNotesCount;
-            var maxScore = ScoreModel.ComputeMaxMultipliedScoreForBeatmap(beatmapData.Item1);
+            var cancellation = new CancellationTokenSource();
+            this._beatmapInfoUpdateQueue.Enqueue((this.ResultRefresh(cancellation.Token), cancellation));
+        }
+        public async Task ResultRefresh(CancellationToken cancellationToken)
+        {
+            string result;
+            try
+            {
+                result = await this.GetResult(cancellationToken);
+            }
+            catch (OperationCanceledException)
+            {
+                return;
+            }
+            this.OnResultRefresh?.Invoke(result);
+        }
+
+        public async Task<string> GetResult(CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (!this._selectedBeatmap.Item1.IsValid())
+                return string.Empty;
+            var records = this._playdata.GetRecords(this._selectedBeatmap.Item1);
+            if (records?.Count == 0)
+                return string.Empty;
+            List<Record> truncated = records.Take(this.ViewCount).ToList();
+            var beatmapData = await this.GetBeatmapDataAsync(cancellationToken);
+            cancellationToken.ThrowIfCancellationRequested();
+            if (beatmapData == null)
+                return string.Empty;
+            var basicBeatmapData = this._selectedBeatmap.Item2.GetDifficultyBeatmapData(this._selectedBeatmap.Item1.beatmapCharacteristic, this._selectedBeatmap.Item1.difficulty);
+            var notesCount = beatmapData.cuttableNotesCount;
+            var maxScore = ScoreModel.ComputeMaxMultipliedScoreForBeatmap(beatmapData);
             var builder = new StringBuilder(200);
 
             foreach (var r in truncated)
@@ -172,37 +173,33 @@ namespace KosorenTool.Models
                 builder.Append($"<size=3.5><color=#ffff00ff> {r.JD:0.0}m {reactionTime:0}ms</color></size>");
                 builder.AppendLine();
             }
-            this.OnResultRefresh?.Invoke(builder.ToString());
+            return builder.ToString();
         }
 
-        public async Task<(IReadonlyBeatmapData, BeatmapLevel)> GetBeatmapDataAsync(BeatmapKey beatmapKey, BeatmapLevel beatmapLevel = null, CancellationToken cancellationToken = new CancellationToken())
+        public async Task<IReadonlyBeatmapData> GetBeatmapDataAsync(CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            if (beatmapLevel == null)
+            var beatmapKey = this._selectedBeatmap.Item1;
+            if (this._selectedBeatmap.Item2 == null)
             {
-                beatmapLevel = this._beatmapLevelsModel.GetBeatmapLevel(beatmapKey.levelId);
-                if (beatmapLevel == null)
-                    throw new Exception("Failed to get BeatmapLevel.");
+                this._selectedBeatmap.Item2 = this._beatmapLevelsModel.GetBeatmapLevel(beatmapKey.levelId);
+                if (this._selectedBeatmap.Item2 == null)
+                    return null;
             }
             var loadResult = await this._beatmapLevelsModel.LoadBeatmapLevelDataAsync(beatmapKey.levelId, cancellationToken);
             cancellationToken.ThrowIfCancellationRequested();
             if (loadResult.isError)
-                throw new Exception("Failed to load beat map level data.");
+                return null;
             var beatmapLevelData = loadResult.beatmapLevelData;
-            var beatmapData = await this._beatmapDataLoader.LoadBeatmapDataAsync(beatmapLevelData, beatmapKey, beatmapLevel.beatsPerMinute, false, null, null, null, false);
+            var beatmapData = await this._beatmapDataLoader.LoadBeatmapDataAsync(beatmapLevelData, beatmapKey, this._selectedBeatmap.Item2.beatsPerMinute, false, null, null, null, false);
             cancellationToken.ThrowIfCancellationRequested();
-            return (beatmapData, beatmapLevel);
+            return beatmapData;
         }
-
 
         public void Initialize()
         {
-            if (PluginConfig.Instance.BeatSaviorTargeted)
-                BeatSaviorDataConfig.SetBool("BeatSaviorData", "DisableBeatSaviorUpload", PluginConfig.Instance.DisableSubmission);
             this._standardLevelDetail.didChangeDifficultyBeatmapEvent += StandardLevelDetail_didChangeDifficultyBeatmapEvent;
             this._standardLevelDetail.didChangeContentEvent += StandardLevelDetail_didChangeContentEvent;
-            this._mainMenuView.didDeactivateEvent += MainMenu_didDeactivateEvent;
-            BSEvents.menuSceneActive += OnMenuSceneActive;
             this._memoFilePath = Path.Combine(IPA.Utilities.UnityGame.UserDataPath, KosorenToolMemo);
             if (!File.Exists(this._memoFilePath))
             {
@@ -224,8 +221,15 @@ namespace KosorenTool.Models
                 {
                     this._standardLevelDetail.didChangeDifficultyBeatmapEvent -= StandardLevelDetail_didChangeDifficultyBeatmapEvent;
                     this._standardLevelDetail.didChangeContentEvent -= StandardLevelDetail_didChangeContentEvent;
-                    this._mainMenuView.didDeactivateEvent -= MainMenu_didDeactivateEvent;
-                    BSEvents.menuSceneActive -= OnMenuSceneActive;
+                    foreach (var (task, cts) in this._beatmapInfoUpdateQueue)
+                    {
+                        cts?.Cancel();
+                        if (task != null && task.IsCompleted)
+                        {
+                            cts?.Dispose();
+                            task?.Dispose();
+                        }
+                    }
                 }
                 this._disposedValue = true;
             }

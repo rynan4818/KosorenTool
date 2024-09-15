@@ -31,8 +31,7 @@ namespace KosorenTool.Models
                 return;
             var result = ((LevelFinishedWithResultsEventArgs)eventArgs).CompletionResults;
             var setupData = (StandardLevelScenesTransitionSetupDataSO)scene;
-            var beatmap = (setupData.beatmapKey, setupData.beatmapLevel);
-            _ = this._playdata.SaveRecordAsync(beatmap, result, this._jumpDistance, this._kosorenModeActive);
+            _ = this._playdata.SaveRecordAsync(setupData.beatmapKey, result, this._jumpDistance, this._kosorenModeActive);
         }
 
         public void Initialize()

@@ -22,7 +22,7 @@ namespace KosorenTool.Models
         private RelativeScoreAndImmediateRankCounter _relativeScoreAndImmediateRankCounter;
         private bool _initializeError;
         private bool disposedValue;
-        private readonly CancellationTokenSource connectionClosed = new CancellationTokenSource();
+        private CancellationTokenSource connectionClosed;
         public GameObject _canvasObject;
         public CurvedTextMeshPro _canvasTextPro;
         public bool _belowActive;
@@ -67,18 +67,24 @@ namespace KosorenTool.Models
             this._kosorenToolController._kosorenModeActive = false;
             this._kosorenToolController._belowPauseModeActive = false;
             var songTime = this._audioTimeSource.songTime;
-            var token = connectionClosed.Token;
+            this.connectionClosed = new CancellationTokenSource();
+            var token = this.connectionClosed.Token;
             try
             {
                 while (this._audioTimeSource.songTime <= songTime)
                 {
                     token.ThrowIfCancellationRequested();
-                    await Task.Delay(500);
+                    await Task.Delay(500, token);
                 }
             }
             catch (Exception)
             {
                 return;
+            }
+            finally
+            {
+                this.connectionClosed?.Dispose();
+                this.connectionClosed = null;
             }
             this._kosorenToolController._jumpDistance = this._beatmapObjectSpawnController.jumpDistance;
             var practiceSettings = BS_Utils.Plugin.LevelData.GameplayCoreSceneSetupData?.practiceSettings;
@@ -130,7 +136,7 @@ namespace KosorenTool.Models
             {
                 if (disposing)
                 {
-                    this.connectionClosed.Cancel();
+                    this.connectionClosed?.Cancel();
                     this._kosorenToolController._standardPlayerActive = false;
                     if (this._kosorenToolController._belowPauseModeActive)
                     {
