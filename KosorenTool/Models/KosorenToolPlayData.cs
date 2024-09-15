@@ -70,13 +70,15 @@ namespace KosorenTool.Models
             this.Dispose(disposing: true);
             GC.SuppressFinalize(this);
         }
+        public string DifficultyFormat(IDifficultyBeatmap beatmap)
+        {
+            return $"{beatmap.level.levelID}___{(int)beatmap.difficulty}___{beatmap.parentDifficultyBeatmapSet.beatmapCharacteristic.serializedName}";
+        }
         public List<Record> GetRecords(IDifficultyBeatmap beatmap)
         {
             var config = PluginConfig.Instance;
             var dateSort = config.Sort == "Sort by Date";
-            var beatmapCharacteristicName = beatmap.parentDifficultyBeatmapSet.beatmapCharacteristic.serializedName;
-            var difficulty = $"{beatmap.level.levelID}___{(int)beatmap.difficulty}___{beatmapCharacteristicName}";
-            if (this._records.TryGetValue(difficulty, out IList<Record> records))
+            if (this._records.TryGetValue(this.DifficultyFormat(beatmap), out IList<Record> records))
             {
                 var filtered = config.ShowFailed ? records : records.Where(s => s.LastNote <= 0);
                 var ordered = filtered.OrderByDescending(s => dateSort ? s.Date : s.ModifiedScore);
@@ -155,8 +157,7 @@ namespace KosorenTool.Models
                 Miss = result.fullCombo ? "FC" : (result.missedCount + result.badCutsCount).ToString(),
                 JD = jumpDistance
             };
-            var beatmapCharacteristicName = beatmap.parentDifficultyBeatmapSet.beatmapCharacteristic.serializedName;
-            var difficulty = $"{beatmap.level.levelID}___{(int)beatmap.difficulty}___{beatmapCharacteristicName}";
+            var difficulty = this.DifficultyFormat(beatmap);
             if (!this._records.ContainsKey(difficulty))
                 this._records.TryAdd(difficulty, new List<Record>());
             this._records[difficulty].Add(record);
