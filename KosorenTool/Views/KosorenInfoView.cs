@@ -3,7 +3,6 @@ using KosorenTool.Configuration;
 using UnityEngine;
 using UnityEngine.UI;
 using KosorenTool.Util;
-using IPA.Config.Data;
 
 namespace KosorenTool.Views
 {

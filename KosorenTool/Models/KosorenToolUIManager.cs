@@ -176,6 +176,7 @@ namespace KosorenTool.Models
         {
             this._standardLevelDetail.didChangeDifficultyBeatmapEvent += StandardLevelDetail_didChangeDifficultyBeatmapEvent;
             this._standardLevelDetail.didChangeContentEvent += StandardLevelDetail_didChangeContentEvent;
+            this._playdata.OnBeatmapInfoUpdated += BeatmapInfoUpdated;
             this._memoFilePath = Path.Combine(IPA.Utilities.UnityGame.UserDataPath, KosorenToolMemo);
             if (!File.Exists(this._memoFilePath))
             {
@@ -197,6 +198,7 @@ namespace KosorenTool.Models
                 {
                     this._standardLevelDetail.didChangeDifficultyBeatmapEvent -= StandardLevelDetail_didChangeDifficultyBeatmapEvent;
                     this._standardLevelDetail.didChangeContentEvent -= StandardLevelDetail_didChangeContentEvent;
+                    this._playdata.OnBeatmapInfoUpdated -= BeatmapInfoUpdated;
                     foreach (var (task, cts) in this._beatmapInfoUpdateQueue)
                     {
                         cts?.Cancel();
