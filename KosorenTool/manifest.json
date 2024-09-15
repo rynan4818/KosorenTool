@@ -3,7 +3,7 @@
   "id": "KosorenTool",
   "name": "KosorenTool",
   "author": "Rynan",
-  "version": "0.2.4",
+  "version": "0.2.6",
   "description": "Tools to practice in secret",
   "gameVersion": "1.20.0",
   "dependsOn": {
