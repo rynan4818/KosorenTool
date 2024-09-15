@@ -43,7 +43,6 @@ namespace KosorenTool.Views
             set
             {
                 PluginConfig.Instance.DisableSubmission = value;
-                this._kosorenToolUIManager.SetBeatSaviorDataSubmission(value);
                 this._kosorenInfoView.KosorenInfoChange(value);
             }
         }
@@ -75,18 +74,6 @@ namespace KosorenTool.Views
         {
             get => PluginConfig.Instance.AllTimeSave;
             set => PluginConfig.Instance.AllTimeSave = value;
-        }
-
-        [UIValue("BeatSaviorTargeted")]
-        public bool BeatSaviorTargeted
-        {
-            get => PluginConfig.Instance.BeatSaviorTargeted;
-            set
-            {
-                PluginConfig.Instance.BeatSaviorTargeted = value;
-                if (value)
-                    this._kosorenToolUIManager.SetBeatSaviorDataSubmission(PluginConfig.Instance.DisableSubmission);
-            }
         }
 
         [UIValue("ScoreBelowPause")]

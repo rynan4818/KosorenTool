@@ -54,12 +54,6 @@ namespace KosorenTool.Models
             BeatmapInfoUpdated(null);
         }
 
-        public void SetBeatSaviorDataSubmission(bool value)
-        {
-            if (PluginConfig.Instance.BeatSaviorTargeted)
-                BeatSaviorDataConfig.SetBool("BeatSaviorData", "DisableBeatSaviorUpload", value);
-        }
-
         public void BeatmapInfoUpdated(IDifficultyBeatmap beatmap)
         {
             if (PluginConfig.Instance.Sort == "Memo")
@@ -154,8 +148,6 @@ namespace KosorenTool.Models
 
         public void Initialize()
         {
-            if (PluginConfig.Instance.BeatSaviorTargeted)
-                BeatSaviorDataConfig.SetBool("BeatSaviorData", "DisableBeatSaviorUpload", PluginConfig.Instance.DisableSubmission);
             this._standardLevelDetail.didChangeDifficultyBeatmapEvent += StandardLevelDetail_didChangeDifficultyBeatmapEvent;
             this._standardLevelDetail.didChangeContentEvent += StandardLevelDetail_didChangeContentEvent;
             this._mainMenuView.didDeactivateEvent += MainMenu_didDeactivateEvent;
