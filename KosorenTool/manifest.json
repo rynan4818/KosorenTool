@@ -3,13 +3,13 @@
   "id": "KosorenTool",
   "name": "KosorenTool",
   "author": "Rynan",
-  "version": "0.2.5",
+  "version": "0.2.11",
   "description": "Tools to practice in secret",
-  "gameVersion": "1.33.0",
+  "gameVersion": "1.37.3",
   "dependsOn": {
-    "BSIPA": "^4.3.2",
-    "SiraUtil": "^3.1.6",
-    "BeatSaberMarkupLanguage": "^1.8.0",
-    "BS Utils": "^1.13.0"
+    "BSIPA": "^4.3.5",
+    "SiraUtil": "^3.1.11",
+    "BeatSaberMarkupLanguage": "^1.11.4",
+    "BS Utils": "^1.14.0"
   }
 }
