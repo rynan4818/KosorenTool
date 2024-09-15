@@ -7,14 +7,14 @@ using TMPro;
 using KosorenTool.Configuration;
 using KosorenTool.Models;
 using UnityEngine;
-using System.Linq;
+using BeatSaber.GameSettings;
 
 namespace KosorenTool.Views
 {
     public class SettingTabViewController : IInitializable, IDisposable
     {
         private bool _disposedValue;
-        private MainSettingsModelSO _mainSettingsModel;
+        private MainSettingsHandler _mainSettingsHandler;
         private KosorenToolUIManager _kosorenToolUIManager;
         private KosorenInfoView _kosorenInfoView;
         public string ResourceName => string.Join(".", GetType().Namespace, GetType().Name);
@@ -23,8 +23,9 @@ namespace KosorenTool.Views
         [UIValue("SortChoices")]
         public List<object> SortChoices { get; set; } = KosorenToolUIManager.SortChoices;
 
-        public SettingTabViewController(KosorenToolUIManager kosorenToolUIManager, KosorenInfoView kosorenInfoView)
+        public SettingTabViewController(MainSettingsHandler mainSettingsHandler, KosorenToolUIManager kosorenToolUIManager, KosorenInfoView kosorenInfoView)
         {
+            this._mainSettingsHandler = mainSettingsHandler;
             this._kosorenToolUIManager = kosorenToolUIManager;
             this._kosorenInfoView = kosorenInfoView;
         }
@@ -122,13 +123,12 @@ namespace KosorenTool.Views
         [UIValue("ControllerZ")]
         public float ControllerZ
         {
-            get => this._mainSettingsModel.controllerPosition.value.z * 100f;
-            set => this._mainSettingsModel.controllerPosition.value = new Vector3(this._mainSettingsModel.controllerPosition.value.x, this._mainSettingsModel.controllerPosition.value.y, Mathf.Clamp(value / 100f, -0.1f, 0.1f));
+            get => this._mainSettingsHandler.instance.controllerSettings.positionOffset.z * 100f;
+            set => this._mainSettingsHandler.instance.controllerSettings.positionOffset = new Vector3(this._mainSettingsHandler.instance.controllerSettings.positionOffset.x, this._mainSettingsHandler.instance.controllerSettings.positionOffset.y, Mathf.Clamp(value / 100f, -0.1f, 0.1f));
         }
 
         public void Initialize()
         {
-            this._mainSettingsModel = Resources.FindObjectsOfTypeAll<MainSettingsModelSO>().First();
             GameplaySetup.instance.AddTab(Plugin.Name, this.ResourceName, this, MenuType.Solo | MenuType.Custom | MenuType.Online);
             this._kosorenToolUIManager.OnResultRefresh += OnResultRefresh;
         }
