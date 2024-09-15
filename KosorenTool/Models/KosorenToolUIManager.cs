@@ -17,6 +17,7 @@ namespace KosorenTool.Models
         private BeatmapLevelsModel _beatmapLevelsModel;
         private BeatmapDataLoader _beatmapDataLoader;
         private PlayerDataModel _playerDataModel;
+        private BeatmapLevelsEntitlementModel _beatmapLevelsEntitlementModel;
         private KosorenToolPlayData _playdata;
         public Queue<(Task, CancellationTokenSource)> _beatmapInfoUpdateQueue = new Queue<(Task, CancellationTokenSource)>();
         public readonly int ViewCount = 30;
@@ -28,12 +29,13 @@ namespace KosorenTool.Models
         public static readonly string KosorenToolMemo = "KosorenToolMemo.txt";
 
         public KosorenToolUIManager(StandardLevelDetailViewController standardLevelDetailViewController, BeatmapLevelsModel beatmapLevelsModel,
-            BeatmapDataLoader beatmapDataLoader, PlayerDataModel playerDataModel, KosorenToolPlayData playdata)
+            BeatmapDataLoader beatmapDataLoader, PlayerDataModel playerDataModel, BeatmapLevelsEntitlementModel beatmapLevelsEntitlementModel, KosorenToolPlayData playdata)
         {
             this._standardLevelDetail = standardLevelDetailViewController;
             this._beatmapLevelsModel = beatmapLevelsModel;
             this._beatmapDataLoader = beatmapDataLoader;
             this._playerDataModel = playerDataModel;
+            this._beatmapLevelsEntitlementModel = beatmapLevelsEntitlementModel;
             this._playdata = playdata;
         }
 
@@ -186,12 +188,22 @@ namespace KosorenTool.Models
                 if (this._selectedBeatmap.Item2 == null)
                     return null;
             }
-            var loadResult = await this._beatmapLevelsModel.LoadBeatmapLevelDataAsync(beatmapKey.levelId, cancellationToken);
+            var beatmapLevelDataVersion = await _beatmapLevelsEntitlementModel.GetLevelDataVersionAsync(beatmapKey.levelId, cancellationToken);
+            cancellationToken.ThrowIfCancellationRequested();
+            var loadResult = await this._beatmapLevelsModel.LoadBeatmapLevelDataAsync(beatmapKey.levelId, beatmapLevelDataVersion, cancellationToken);
             cancellationToken.ThrowIfCancellationRequested();
             if (loadResult.isError)
                 return null;
             var beatmapLevelData = loadResult.beatmapLevelData;
-            var beatmapData = await this._beatmapDataLoader.LoadBeatmapDataAsync(beatmapLevelData, beatmapKey, this._selectedBeatmap.Item2.beatsPerMinute, false, null, null, null, false);
+            var beatmapData = await this._beatmapDataLoader.LoadBeatmapDataAsync(beatmapLevelData: beatmapLevelData,
+                                                                                 beatmapKey: beatmapKey,
+                                                                                 startBpm: this._selectedBeatmap.Item2.beatsPerMinute,
+                                                                                 loadingForDesignatedEnvironment: false,
+                                                                                 environmentInfo: null,
+                                                                                 beatmapLevelDataVersion: beatmapLevelDataVersion,
+                                                                                 gameplayModifiers: null,
+                                                                                 playerSpecificSettings: null,
+                                                                                 enableBeatmapDataCaching: false);
             cancellationToken.ThrowIfCancellationRequested();
             return beatmapData;
         }
