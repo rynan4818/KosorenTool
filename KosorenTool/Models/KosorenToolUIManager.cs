@@ -79,7 +79,8 @@ namespace KosorenTool.Models
         }
         public void ResultRefreshQueueAdd(string result = null)
         {
-            for (int i = 0; i < this._beatmapInfoUpdateQueue.Count; i++)
+            var queueCount = this._beatmapInfoUpdateQueue.Count;
+            for (int i = 0; i < queueCount; i++)
             {
                 var (task, cts) = this._beatmapInfoUpdateQueue.Dequeue();
                 cts?.Cancel();
