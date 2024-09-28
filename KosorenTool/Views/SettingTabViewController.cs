@@ -17,17 +17,19 @@ namespace KosorenTool.Views
         private SettingsManager _settingsManager;
         private KosorenToolUIManager _kosorenToolUIManager;
         private KosorenInfoView _kosorenInfoView;
+        private GameplaySetup _gameplaySetup;
         public string ResourceName => string.Join(".", GetType().Namespace, GetType().Name);
         [UIComponent("Result")]
         public readonly TextMeshProUGUI _result;
         [UIValue("SortChoices")]
         public List<object> SortChoices { get; set; } = KosorenToolUIManager.SortChoices;
 
-        public SettingTabViewController(SettingsManager settingsManager, KosorenToolUIManager kosorenToolUIManager, KosorenInfoView kosorenInfoView)
+        public SettingTabViewController(SettingsManager settingsManager, KosorenToolUIManager kosorenToolUIManager, KosorenInfoView kosorenInfoView, GameplaySetup gameplaySetup)
         {
             this._settingsManager = settingsManager;
             this._kosorenToolUIManager = kosorenToolUIManager;
             this._kosorenInfoView = kosorenInfoView;
+            this._gameplaySetup = gameplaySetup;
         }
 
         public void OnResultRefresh(string value)
@@ -129,7 +131,7 @@ namespace KosorenTool.Views
 
         public void Initialize()
         {
-            GameplaySetup.instance.AddTab(Plugin.Name, this.ResourceName, this, MenuType.Solo | MenuType.Custom | MenuType.Online);
+            this._gameplaySetup.AddTab(Plugin.Name, this.ResourceName, this, MenuType.Solo | MenuType.Custom | MenuType.Online);
             this._kosorenToolUIManager.OnResultRefresh += OnResultRefresh;
         }
         protected virtual void Dispose(bool disposing)
@@ -138,7 +140,7 @@ namespace KosorenTool.Views
             {
                 if (disposing)
                 {
-                    GameplaySetup.instance?.RemoveTab(Plugin.Name);
+                    this._gameplaySetup?.RemoveTab(Plugin.Name);
                     this._kosorenToolUIManager.OnResultRefresh -= OnResultRefresh;
                 }
                 this._disposedValue = true;
