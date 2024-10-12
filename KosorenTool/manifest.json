@@ -3,9 +3,9 @@
   "id": "KosorenTool",
   "name": "KosorenTool",
   "author": "Rynan",
-  "version": "0.2.12",
+  "version": "0.2.13",
   "description": "Tools to practice in secret",
-  "gameVersion": "1.37.4",
+  "gameVersion": "1.38.0",
   "dependsOn": {
     "BSIPA": "^4.3.5",
     "SiraUtil": "^3.1.12",
