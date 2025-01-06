@@ -14,7 +14,7 @@ namespace KosorenTool.Models
 {
     public class KosorenToolPlayerController : IInitializable, IDisposable, ICutScoreBufferDidFinishReceiver
     {
-        private BeatmapObjectSpawnController _beatmapObjectSpawnController;
+        private VariableMovementDataProvider _variableMovementDataProvider;
         private IAudioTimeSource _audioTimeSource;
         private KosorenToolController _kosorenToolController;
         private ScoreController _scoreController;
@@ -37,7 +37,7 @@ namespace KosorenTool.Models
             this._initializeError = true;
             try
             {
-                this._beatmapObjectSpawnController = container.Resolve<BeatmapObjectSpawnController>();
+                this._variableMovementDataProvider = container.Resolve<VariableMovementDataProvider>();
                 this._audioTimeSource = container.Resolve<IAudioTimeSource>();
                 this._kosorenToolController = container.Resolve<KosorenToolController>();
                 this._scoreController = container.Resolve<ScoreController>();
@@ -86,7 +86,7 @@ namespace KosorenTool.Models
                 this.connectionClosed?.Dispose();
                 this.connectionClosed = null;
             }
-            this._kosorenToolController._jumpDistance = this._beatmapObjectSpawnController.jumpDistance;
+            this._kosorenToolController._jumpDistance = this._variableMovementDataProvider.jumpDistance;
             var practiceSettings = BS_Utils.Plugin.LevelData.GameplayCoreSceneSetupData?.practiceSettings;
             this._kosorenToolController._isPractice = practiceSettings != null;
             if (!this._kosorenToolController._isPractice && this._kosorenToolController._standardPlayerActive && !Gamemode.IsPartyActive && PluginConfig.Instance.DisableSubmission && !ScoreMonitorPatch.TournamentAssistantActive)
@@ -175,7 +175,7 @@ namespace KosorenTool.Models
                 case GoodCutScoringElement goodCut:
                     var noteData = goodCut.noteData;
                     var cutScoreBuffer = goodCut.cutScoreBuffer;
-                    if (cutScoreBuffer != null && noteData.gameplayType != NoteData.GameplayType.Bomb && goodCut.cutScoreBuffer.noteCutInfo.allIsOK && noteData.scoringType != NoteData.ScoringType.BurstSliderElement)
+                    if (cutScoreBuffer != null && noteData.gameplayType != NoteData.GameplayType.Bomb && goodCut.cutScoreBuffer.noteCutInfo.allIsOK && noteData.gameplayType != NoteData.GameplayType.BurstSliderElement)
                         cutScoreBuffer.RegisterDidFinishReceiver(this);
                     break;
             }
