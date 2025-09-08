@@ -122,12 +122,14 @@ namespace KosorenTool.Views
             set => PluginConfig.Instance.StartUncheckedTime = value;
         }
 
+        /*
         [UIValue("ControllerZ")]
         public float ControllerZ
         {
             get => this._settingsManager.settings.controller.position.z * 100f;
             set => this._settingsManager.settings.controller.position = new float3(this._settingsManager.settings.controller.position.x, this._settingsManager.settings.controller.position.y, Mathf.Clamp(value / 100f, -0.1f, 0.1f));
         }
+        */
 
         public void Initialize()
         {
